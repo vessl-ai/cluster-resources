@@ -1,0 +1,18 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: savvihub-{{ .Values.namespace }}
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources:
+      - nodes/metrics
+      - nodes/spec
+      - nodes/proxy
+      - nodes/stats
+    verbs: ["get"]
+  - nonResourceURLs: ["/version", "/healthz", "/metrics"]
+    verbs: ["get"]

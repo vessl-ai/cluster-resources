@@ -7,6 +7,6 @@ roleRef:
   kind: ClusterRole
   name: savvihub-{{ .Values.namespace }}
 subjects:
-- kind: ServiceAccount
-  name: savvihub
-  namespace: {{ .Values.namespace }}
+  - kind: ServiceAccount
+    name: savvihub
+    namespace: {{ .Values.namespace }}

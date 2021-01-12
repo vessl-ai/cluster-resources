@@ -28,7 +28,7 @@ spec:
                   operator: In
                   values:
                   - linux
-      serviceAccountName: savvihub
+      serviceAccountName: prometheus
       initContainers:
         - name: chown
           image: docker.io/alpine:3.9

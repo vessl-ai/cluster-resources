@@ -1,25 +1,14 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: savvihub-{{ .Values.namespace }}
+  name: kube-state-metrics-{{ .Values.namespace }}
 rules:
-  - apiGroups:
-    - ""
-    resources:
-      - nodes
-    verbs:
-      - get
-      - list
-      - watch
-      - patch
-      - update
   - apiGroups:
     - ""
     resources:
     - configmaps
     - secrets
-    - nodes/proxy
-    - nodes/metrics
+    - nodes
     - pods
     - services
     - resourcequotas
@@ -29,7 +18,6 @@ rules:
     - persistentvolumes
     - namespaces
     - endpoints
-    - ingresses
     verbs:
     - list
     - watch
@@ -124,5 +112,3 @@ rules:
     verbs:
     - list
     - watch
-  - nonResourceURLs: ["/metrics"]
-    verbs: ["get"]

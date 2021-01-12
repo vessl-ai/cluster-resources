@@ -35,7 +35,7 @@ spec:
                   operator: In
                   values:
                   - amd64
-      serviceAccountName: savvihub
+      serviceAccountName: kube-state-metrics
       containers:
       - name: kube-state-metrics
         image: quay.io/coreos/kube-state-metrics:v1.9.7

@@ -14,5 +14,9 @@ rules:
   - ingresses
   - configmaps
   verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+    - nodes
+  verbs: ["update"]
 - nonResourceURLs: ["/metrics"]
   verbs: ["get"]

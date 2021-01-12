@@ -63,7 +63,7 @@ data:
       relabel_configs:
       - action: labelmap
         regex: __meta_kubernetes_node_label_(.+)
-      - replacement: 'lens-metrics'
+      - replacement: '{{ .Values.namespace }}'
         target_label: kubernetes_namespace
       metric_relabel_configs:
       - source_labels:
@@ -137,7 +137,7 @@ data:
       - role: endpoints
         namespaces:
           names:
-            - lens-metrics
+            - {{ .Values.namespace }}
 
       relabel_configs:
       - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
@@ -191,7 +191,7 @@ data:
       - role: service
         namespaces:
           names:
-            - lens-metrics
+            - {{ .Values.namespace }}
 
       relabel_configs:
       - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_probe]
@@ -228,7 +228,7 @@ data:
       - role: pod
         namespaces:
           names:
-            - lens-metrics
+            - {{ .Values.namespace }}
       relabel_configs:
       - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
         action: keep

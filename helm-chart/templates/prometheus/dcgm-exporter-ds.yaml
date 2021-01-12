@@ -20,13 +20,8 @@ spec:
         app.kubernetes.io/version: 2.1.1
       name: dcgm-exporter
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: cloud.google.com/gke-accelerator
-                operator: Exists
+      nodeSelector:
+        feature.node.kubernetes.io/pci-10de.present: 'true' # NVIDIA vendor ID
       containers:
       - image: nvidia/dcgm-exporter:2.0.13-2.1.1-ubuntu18.04
         env:

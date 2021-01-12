@@ -37,7 +37,3 @@ spec:
           secret:
             secretName: savvihub-agent
       serviceAccountName: savvihub
-      {{ if (not (empty .Values.savvihub.imagePullSecretName)) }}
-      imagePullSecrets:
-        - name: {{ .Values.savvihub.imagePullSecretName }}
-      {{ end }}

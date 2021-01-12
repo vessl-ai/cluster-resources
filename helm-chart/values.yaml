@@ -4,7 +4,6 @@ savvihub:
   agentAccessToken:
   apiServer: https://savvihub.com
   logLevel: info
-  imagePullSecretName:
 
 prometheus:
   dcgmExporterUseDeviceName:

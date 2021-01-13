@@ -3,6 +3,9 @@ kind: Service
 metadata:
   name: prometheus
   namespace: {{ .Values.namespace }}
+  labels:
+    app: prometheus
+    component: server
   annotations:
     prometheus.io/scrape: 'true'
 spec:

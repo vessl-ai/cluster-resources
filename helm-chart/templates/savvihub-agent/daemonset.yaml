@@ -17,6 +17,11 @@ spec:
           image: "savvihub/cluster-agent:latest"
           imagePullPolicy: Always
           env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
             - name: SAVVIHUB_API_URL
               value: {{ .Values.savvihub.apiServer }}
             - name: SAVVIHUB_LOG_LEVEL

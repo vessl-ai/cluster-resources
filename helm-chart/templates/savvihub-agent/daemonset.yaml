@@ -25,6 +25,9 @@ spec:
             - name: varlog
               mountPath: /var/log
               readOnly: true
+            - name: logcontainerpath
+              readOnly: true
+              mountPath: /var/lib/docker/containers
             - name: access-token
               readOnly: true
               mountPath: /secrets
@@ -33,6 +36,9 @@ spec:
         - name: varlog
           hostPath:
             path: /var/log
+        - name: logcontainerpath
+          hostPath:
+            path: /var/lib/docker/containers
         - name: access-token
           secret:
             secretName: savvihub-agent

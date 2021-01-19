@@ -1,3 +1,4 @@
+{{- if empty .Values.prometheus.namespace -}}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -58,3 +59,4 @@ spec:
       - name: nvidia-install-dir-host
         hostPath:
           path: /home/kubernetes/bin/nvidia
+{{- end -}}

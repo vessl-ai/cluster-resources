@@ -26,6 +26,8 @@ spec:
               value: {{ .Values.savvihub.apiServer }}
             - name: SAVVIHUB_LOG_LEVEL
               value: {{ .Values.savvihub.logLevel }}
+            - name: SAVVIHUB_PROMETHEUS_NAMESPACE
+              value: {{ .Values.prometheus.namespace }}
           volumeMounts:
             - name: varlog
               mountPath: /var/log

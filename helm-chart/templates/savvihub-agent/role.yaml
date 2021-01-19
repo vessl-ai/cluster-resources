@@ -4,9 +4,20 @@ metadata:
   name: savvihub
   namespace: {{ .Values.namespace }}
 rules:
-  - verbs:
-      - '*'
-    apiGroups:
-      - '*'
-    resources:
-      - '*'
+  - apiGroups: ['*']
+    resources: ['*']
+    verbs: ['*']
+
+{{- if not (empty .Values.prometheus.namespace) }}
+---
+
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: savvihub-prometheus-{{ .Values.namespace }}
+  namespace: {{ .Values.prometheus.namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["list", "get", "watch"]
+{{- end -}}

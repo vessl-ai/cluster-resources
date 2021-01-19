@@ -6,4 +6,5 @@ savvihub:
   logLevel: info
 
 prometheus:
+  namespace:
   dcgmExporterUseDeviceName:

@@ -10,3 +10,21 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: savvihub
+
+{{- if not (empty .Values.prometheus.namespace) }}
+---
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: savvihub-prometheus-{{ .Values.namespace }}
+  namespace: {{ .Values.prometheus.namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: savvihub
+    namespace: {{ .Values.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: savvihub-prometheus-{{ .Values.namespace }}
+{{- end -}}

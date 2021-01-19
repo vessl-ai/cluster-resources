@@ -73,6 +73,9 @@ spec:
             requests:
               cpu: 100m
               memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 3Gi
       terminationGracePeriodSeconds: 30
       volumes:
         - name: config

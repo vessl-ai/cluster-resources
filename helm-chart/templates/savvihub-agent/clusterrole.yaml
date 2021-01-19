@@ -9,6 +9,10 @@ rules:
     verbs: ["get", "list", "watch"]
   - apiGroups: [""]
     resources:
+      - persistentvolumes
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources:
       - nodes/metrics
       - nodes/spec
       - nodes/proxy

@@ -1,3 +1,4 @@
+{{- if empty .Values.prometheus.namespace -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -55,3 +56,4 @@ spec:
           limits:
             cpu: 200m
             memory: 150Mi
+{{- end -}}

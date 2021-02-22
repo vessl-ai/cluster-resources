@@ -2,7 +2,7 @@ namespace: savvihub
 
 savvihub:
   agentAccessToken:
-  apiServer: https://savvihub.com
+  apiServer: https://api.savvihub.com
   logLevel: info
 
 prometheus:

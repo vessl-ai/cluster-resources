@@ -85,13 +85,6 @@ spec:
         - name: rules
           configMap:
             name: prometheus-rules
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-      spec:
-        accessModes:
-        - ReadWriteOnce
-        resources:
-          requests:
-            storage: 20G
+        - name: data
+          emptyDir: {}
 {{- end -}}

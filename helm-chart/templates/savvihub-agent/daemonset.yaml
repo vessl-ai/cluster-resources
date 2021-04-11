@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: savvihub-agent
-          image: "savvihub/cluster-agent:latest"
+          image: "savvihub/cluster-agent:0.2.6"
           imagePullPolicy: Always
           env:
             - name: NODE_NAME

@@ -15,7 +15,7 @@ spec:
       labels:
         app: nfd
     spec:
-      serviceAccount: prometheus
+      serviceAccountName: prometheus
       containers:
         - env:
           - name: NODE_NAME

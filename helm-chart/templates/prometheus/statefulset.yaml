@@ -44,10 +44,10 @@ spec:
             - --web.listen-address=0.0.0.0:9090
             - --config.file=/etc/prometheus/prometheus.yaml
             - --storage.tsdb.path=/var/lib/prometheus
-            - --storage.tsdb.retention.time=2d
-            - --storage.tsdb.retention.size=5GB
-            - --storage.tsdb.min-block-duration=2h
-            - --storage.tsdb.max-block-duration=2h
+            - --storage.tsdb.retention.time=10m
+            - --storage.tsdb.retention.size=1GB
+            - --storage.tsdb.min-block-duration=10m
+            - --storage.tsdb.max-block-duration=10m
           ports:
             - name: web
               containerPort: 9090
@@ -75,8 +75,8 @@ spec:
               cpu: 100m
               memory: 512Mi
             limits:
-              cpu: 1000m
-              memory: 5Gi
+              cpu: 500m
+              memory: 1Gi
       terminationGracePeriodSeconds: 30
       volumes:
         - name: config

@@ -5,6 +5,9 @@ savvihub:
   apiServer: https://api.savvihub.com
   logLevel: info
 
+kubernetes:
+  logContainerPath: /var/lib/docker/containers
+
 prometheus:
   namespace:
   dcgmExporterUseDeviceName:

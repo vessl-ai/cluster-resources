@@ -34,7 +34,7 @@ spec:
               readOnly: true
             - name: logcontainerpath
               readOnly: true
-              mountPath: /var/lib/docker/containers
+              mountPath: {{ .Values.kubernetes.logContainerPath }}
             - name: access-token
               readOnly: true
               mountPath: /secrets
@@ -45,7 +45,7 @@ spec:
             path: /var/log
         - name: logcontainerpath
           hostPath:
-            path: /var/lib/docker/containers
+            path: {{ .Values.kubernetes.logContainerPath }}
         - name: access-token
           secret:
             secretName: savvihub-agent

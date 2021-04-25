@@ -22,10 +22,14 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: spec.nodeName
+            - name: SAVVIHUB_ENV
+              value: {{ .Values.savvihub.env }}
             - name: SAVVIHUB_API_URL
               value: {{ .Values.savvihub.apiServer }}
             - name: SAVVIHUB_LOG_LEVEL
               value: {{ .Values.savvihub.logLevel }}
+            - name: SAVVIHUB_SENTRY_DSN
+              value: {{ .Values.savvihub.sentryDsn }}
             - name: SAVVIHUB_PROMETHEUS_NAMESPACE
               value: {{ .Values.prometheus.namespace }}
           volumeMounts:

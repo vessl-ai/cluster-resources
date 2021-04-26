@@ -2,13 +2,13 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: savvihub-local-path-provisioner-{{ .Release.Name }}
+  name: local-path-provisioner-{{ .Release.Name }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: savvihub-local-path-provisioner-{{ .Release.Name }}
+  name: local-path-provisioner-{{ .Release.Name }}
 subjects:
   - kind: ServiceAccount
-    name: savvihub-local-path-provisioner
+    name: local-path-provisioner-service-account
     namespace: {{ .Release.Namespace }}
 {{- end -}}

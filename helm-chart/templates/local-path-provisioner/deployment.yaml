@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: savvihub-local-path-provisioner
+  name: local-path-provisioner
 spec:
   replicas: 1
   selector:
@@ -13,7 +13,7 @@ spec:
       labels:
         app: local-path-provisioner
     spec:
-      serviceAccountName: savvihub-local-path-provisioner
+      serviceAccountName: local-path-provisioner-service-account
       containers:
         - name: local-path-provisioner
           image: rancher/local-path-provisioner:v0.0.19

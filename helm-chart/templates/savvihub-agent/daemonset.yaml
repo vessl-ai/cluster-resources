@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: savvihub-agent
-  namespace: {{ .Values.namespace }}
 spec:
   selector:
     matchLabels:
@@ -14,7 +13,7 @@ spec:
     spec:
       containers:
         - name: savvihub-agent
-          image: "savvihub/cluster-agent:0.2.6"
+          image: "savvihub/cluster-agent:latest"
           imagePullPolicy: Always
           env:
             - name: NODE_NAME
@@ -30,8 +29,10 @@ spec:
               value: {{ .Values.savvihub.logLevel }}
             - name: SAVVIHUB_SENTRY_DSN
               value: {{ .Values.savvihub.sentryDsn }}
-            - name: SAVVIHUB_PROMETHEUS_NAMESPACE
-              value: {{ .Values.prometheus.namespace }}
+            - name: SAVVIHUB_COLLECT_ALL_NAMESPACE
+              value: "{{ .Values.savvihub.manageAllNamespaces }}"
+            - name: SAVVIHUB_PREINSTALLED_NAMESPACE
+              value: {{ .Values.preinstalledNamespace }}
           volumeMounts:
             - name: varlog
               mountPath: /var/log

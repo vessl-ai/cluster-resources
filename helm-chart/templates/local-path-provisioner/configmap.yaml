@@ -1,8 +1,8 @@
+{{- if empty .Values.preinstalledNamespace -}}
 kind: ConfigMap
 apiVersion: v1
 metadata:
   name: local-path-config
-  namespace: {{ .Values.namespace }}
 data:
   config.json: |-
     {
@@ -58,3 +58,4 @@ data:
       containers:
       - name: helper-pod
         image: busybox
+{{- end -}}

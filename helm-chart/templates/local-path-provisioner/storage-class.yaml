@@ -1,7 +1,9 @@
+{{- if empty .Values.preinstalledNamespace -}}
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: local-path-{{ .Values.namespace }}
+  name: savvihub-local-path-{{ .Release.Name }}
 provisioner: rancher.io/local-path
 volumeBindingMode: WaitForFirstConsumer
 reclaimPolicy: Delete
+{{- end -}}

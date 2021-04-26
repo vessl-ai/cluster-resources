@@ -1,12 +1,14 @@
+{{- if empty .Values.preinstalledNamespace -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: savvihub-{{ .Release.Name }}
+  name: savvihub-kube-state-metrics-{{ .Release.Name }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: savvihub-{{ .Release.Name }}
+  name: savvihub-kube-state-metrics-{{ .Release.Name }}
 subjects:
   - kind: ServiceAccount
-    name: savvihub
+    name: savvihub-kube-state-metrics
     namespace: {{ .Release.Namespace }}
+{{- end -}}

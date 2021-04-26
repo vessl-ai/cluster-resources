@@ -1,21 +1,20 @@
-{{- if empty .Values.prometheus.namespace -}}
+{{- if empty .Values.preinstalledNamespace -}}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
+  name: savvihub-node-feature-discovery
   labels:
-    app: nfd
-  name: nfd
-  namespace: {{ .Values.namespace }}
+    app: node-feature-discovery
 spec:
   selector:
     matchLabels:
-      app: nfd
+      app: node-feature-discovery
   template:
     metadata:
       labels:
-        app: nfd
+        app: node-feature-discovery
     spec:
-      serviceAccountName: prometheus
+      serviceAccountName: savvihub-node-feature-discovery
       containers:
         - env:
           - name: NODE_NAME

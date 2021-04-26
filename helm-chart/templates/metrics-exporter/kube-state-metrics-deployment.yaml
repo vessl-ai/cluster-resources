@@ -1,9 +1,8 @@
-{{- if empty .Values.prometheus.namespace -}}
+{{- if empty .Values.preinstalledNamespace -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kube-state-metrics
-  namespace: {{ .Values.namespace }}
+  name: savvihub-kube-state-metrics
 spec:
   selector:
     matchLabels:
@@ -36,7 +35,7 @@ spec:
                   operator: In
                   values:
                   - amd64
-      serviceAccountName: kube-state-metrics
+      serviceAccountName: savvihub-kube-state-metrics
       containers:
       - name: kube-state-metrics
         image: quay.io/coreos/kube-state-metrics:v1.9.7

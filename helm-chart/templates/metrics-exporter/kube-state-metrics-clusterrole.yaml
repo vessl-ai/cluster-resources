@@ -1,8 +1,8 @@
-{{- if empty .Values.prometheus.namespace -}}
+{{- if empty .Values.preinstalledNamespace -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: kube-state-metrics-{{ .Values.namespace }}
+  name: savvihub-kube-state-metrics-{{ .Release.Name }}
 rules:
   - apiGroups:
     - ""

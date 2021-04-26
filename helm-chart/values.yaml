@@ -1,15 +1,15 @@
-namespace: savvihub
-
 savvihub:
   agentAccessToken:
   apiServer: https://api.savvihub.com
   logLevel: info
   env: prod
   sentryDsn: https://0481c31171114c109ac911ac947f0518@o386227.ingest.sentry.io/5585090
+  manageAllNamespaces: false
 
 kubernetes:
   logContainerPath: /var/lib/docker/containers
 
-prometheus:
-  namespace:
+metricsExporters:
   dcgmExporterUseDeviceName:
+
+preinstalledNamespace:

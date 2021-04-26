@@ -1,9 +1,8 @@
-{{- if empty .Values.prometheus.namespace -}}
+{{- if empty .Values.preinstalledNamespace -}}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: dcgm-exporter
-  namespace: {{ .Values.namespace }}
+  name: savvihub-dcgm-exporter
   labels:
     app.kubernetes.io/name: dcgm-exporter
     app.kubernetes.io/version: 2.1.1
@@ -42,7 +41,7 @@ spec:
         - name: pod-gpu-resources
           readOnly: true
           mountPath: /var/lib/kubelet/pod-resources
-        {{- if (empty .Values.prometheus.dcgmExporterUseDeviceName) }}
+        {{- if (empty .Values.metricsExporters.dcgmExporterUseDeviceName) }}
         command: ["dcgm-exporter", "-k"]
         {{- else }}
         command: ["dcgm-exporter", "-k", "--kubernetes-gpu-id-type", "device-name"]

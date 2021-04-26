@@ -1,0 +1,14 @@
+{{- if empty .Values.preinstalledNamespace -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: savvihub-node-feature-discovery-{{ .Release.Name }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: savvihub-node-feature-discovery-{{ .Release.Name }}
+subjects:
+- kind: ServiceAccount
+  name: savvihub-node-feature-discovery
+  namespace: {{ .Release.Namespace }}
+{{- end -}}

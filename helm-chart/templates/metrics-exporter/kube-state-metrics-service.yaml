@@ -1,11 +1,12 @@
-{{- if empty .Values.prometheus.namespace -}}
+{{- if empty .Values.preinstalledNamespace -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: kube-state-metrics
-  namespace: {{ .Values.namespace }}
+  name: savvihub-kube-state-metrics
   labels:
     name: kube-state-metrics
+    v1.k8s.savvihub.com/managed: 'true'
+    v1.k8s.savvihub.com/type: kube-state-metrics
   annotations:
     prometheus.io/scrape: 'true'
 spec:

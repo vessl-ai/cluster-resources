@@ -1,3 +1,4 @@
+{{- if empty .Values.preinstalledNamespace -}}
 # Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +16,11 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: nvidia-device-plugin-daemonset
-  namespace: {{ .Values.namespace }}
+  name: savvihub-nvidia-device-plugin
 spec:
   selector:
     matchLabels:
-      name: nvidia-device-plugin-ds
+      name: nvidia-device-plugin
   updateStrategy:
     type: RollingUpdate
   template:
@@ -30,7 +30,7 @@ spec:
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ""
       labels:
-        name: nvidia-device-plugin-ds
+        name: nvidia-device-plugin
     spec:
       tolerations:
       # This toleration is deprecated. Kept here for backward compatibility
@@ -47,7 +47,7 @@ spec:
       priorityClassName: "system-node-critical"
       containers:
       - image: nvcr.io/nvidia/k8s-device-plugin:v0.9.0
-        name: nvidia-device-plugin-ctr
+        name: nvidia-device-plugin
         args: ["--fail-on-init-error=false"]
         securityContext:
           allowPrivilegeEscalation: false
@@ -60,3 +60,4 @@ spec:
         - name: device-plugin
           hostPath:
             path: /var/lib/kubelet/device-plugins
+{{- end -}}

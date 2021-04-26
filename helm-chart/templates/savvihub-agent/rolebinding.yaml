@@ -2,7 +2,6 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: savvihub
-  namespace: {{ .Values.namespace }}
 subjects:
   - kind: ServiceAccount
     name: savvihub
@@ -11,20 +10,20 @@ roleRef:
   kind: Role
   name: savvihub
 
-{{- if not (empty .Values.prometheus.namespace) }}
+{{- if not (empty .Values.preinstalledNamespace) }}
 ---
 
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: savvihub-prometheus-{{ .Values.namespace }}
-  namespace: {{ .Values.prometheus.namespace }}
+  name: savvihub-exporters-{{ .Release.Name }}
+  namespace: {{ .Values.preinstalledNamespace }}
 subjects:
   - kind: ServiceAccount
     name: savvihub
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: savvihub-prometheus-{{ .Values.namespace }}
+  name: savvihub-exporters-{{ .Release.Name }}
 {{- end -}}

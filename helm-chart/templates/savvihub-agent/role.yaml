@@ -2,20 +2,19 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: savvihub
-  namespace: {{ .Values.namespace }}
 rules:
   - apiGroups: ['*']
     resources: ['*']
     verbs: ['*']
 
-{{- if not (empty .Values.prometheus.namespace) }}
+{{- if not (empty .Values.preinstalledNamespace) }}
 ---
 
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: savvihub-prometheus-{{ .Values.namespace }}
-  namespace: {{ .Values.prometheus.namespace }}
+  name: savvihub-exporters-{{ .Release.Name }}
+  namespace: {{ .Values.preinstalledNamespace }}
 rules:
   - apiGroups: [""]
     resources: ["services"]

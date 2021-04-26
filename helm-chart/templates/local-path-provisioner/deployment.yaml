@@ -1,8 +1,8 @@
+{{- if empty .Values.preinstalledNamespace -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: local-path-provisioner
-  namespace: {{ .Values.namespace }}
+  name: savvihub-local-path-provisioner
 spec:
   replicas: 1
   selector:
@@ -13,7 +13,7 @@ spec:
       labels:
         app: local-path-provisioner
     spec:
-      serviceAccountName: local-path-provisioner-service-account
+      serviceAccountName: savvihub-local-path-provisioner
       containers:
         - name: local-path-provisioner
           image: rancher/local-path-provisioner:v0.0.19
@@ -36,3 +36,4 @@ spec:
         - name: config-volume
           configMap:
             name: local-path-config
+  {{- end -}}

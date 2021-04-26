@@ -1,7 +1,8 @@
+{{- if empty .Values.preinstalledNamespace -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: local-path-provisioner-role-{{ .Values.namespace }}
+  name: savvihub-local-path-provisioner-{{ .Release.Name }}
 rules:
   - apiGroups: [ "" ]
     resources: [ "nodes", "persistentvolumeclaims", "configmaps" ]
@@ -15,3 +16,4 @@ rules:
   - apiGroups: [ "storage.k8s.io" ]
     resources: [ "storageclasses" ]
     verbs: [ "get", "list", "watch" ]
+{{- end -}}

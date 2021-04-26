@@ -1,9 +1,8 @@
-{{- if empty .Values.prometheus.namespace -}}
+{{- if empty .Values.preinstalledNamespace -}}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: gpu-feature-discovery
-  namespace: {{ .Values.namespace }}
+  name: savvihub-gpu-feature-discovery
   labels:
     app.kubernetes.io/name: gpu-feature-discovery
     app.kubernetes.io/version: 0.2.2

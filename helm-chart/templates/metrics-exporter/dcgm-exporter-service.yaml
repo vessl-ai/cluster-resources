@@ -1,15 +1,13 @@
-{{- if empty .Values.prometheus.namespace -}}
+{{- if empty .Values.preinstalledNamespace -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: dcgm-exporter
-  namespace: {{ .Values.namespace }}
+  name: savvihub-dcgm-exporter
   labels:
     app.kubernetes.io/name: dcgm-exporter
     app.kubernetes.io/version: 2.1.1
-  annotations:
-    prometheus.io/scrape: 'true'
-    prometheus.io/port: '9400'
+    v1.k8s.savvihub.com/managed: 'true'
+    v1.k8s.savvihub.com/type: dcgm-exporter
 spec:
   selector:
     app.kubernetes.io/name: dcgm-exporter

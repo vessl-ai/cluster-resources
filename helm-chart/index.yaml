@@ -2,10 +2,10 @@ apiVersion: v1
 entries:
   cluster-resources:
   - apiVersion: v2
-    created: "2021-04-27T03:52:10.016096+09:00"
-    digest: 4b51dfcd398c636f8ce9a351c0967e53110e21b935428c80fe808873c619ce8a
+    created: "2021-04-27T04:11:00.606624+09:00"
+    digest: 43949a298a6aa4f0c5cfd3f5d822e2d5c2a124fee8dafdd12ab25a6c73f05bed
     name: cluster-resources
     urls:
-    - https://savvihub.github.io/cluster-resources/helm-chart/cluster-resources-0.0.8.tgz
-    version: 0.0.8
-generated: "2021-04-27T03:52:10.006008+09:00"
+    - https://savvihub.github.io/cluster-resources/helm-chart/cluster-resources-0.0.9.tgz
+    version: 0.0.9
+generated: "2021-04-27T04:11:00.593167+09:00"

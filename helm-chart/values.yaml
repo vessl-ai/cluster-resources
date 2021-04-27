@@ -9,6 +9,9 @@ savvihub:
 kubernetes:
   logContainerPath: /var/lib/docker/containers
 
+localPathProvisioner:
+  hostPath: /opt/local-path-provisioner
+
 metricsExporters:
   dcgmExporterUseDeviceName:
 

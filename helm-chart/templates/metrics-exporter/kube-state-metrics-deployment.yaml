@@ -36,6 +36,8 @@ spec:
                   values:
                   - amd64
       serviceAccountName: savvihub-kube-state-metrics
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
       containers:
       - name: kube-state-metrics
         image: quay.io/coreos/kube-state-metrics:v1.9.7

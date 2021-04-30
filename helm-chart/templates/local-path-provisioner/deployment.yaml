@@ -14,6 +14,8 @@ spec:
         app: local-path-provisioner
     spec:
       serviceAccountName: local-path-provisioner-service-account
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
       containers:
         - name: local-path-provisioner
           image: rancher/local-path-provisioner:v0.0.19

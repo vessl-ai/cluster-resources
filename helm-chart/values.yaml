@@ -15,4 +15,6 @@ localPathProvisioner:
 metricsExporters:
   dcgmExporterUseDeviceName:
 
+tolerations: []
+
 preinstalledNamespace:

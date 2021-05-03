@@ -11,6 +11,8 @@ spec:
       labels:
         name: savvihub-agent
     spec:
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
       containers:
         - name: savvihub-agent
           image: "savvihub/cluster-agent:latest"

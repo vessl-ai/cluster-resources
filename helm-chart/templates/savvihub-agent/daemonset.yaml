@@ -15,7 +15,7 @@ spec:
 {{ toYaml .Values.tolerations | indent 8 }}
       containers:
         - name: savvihub-agent
-          image: "savvihub/cluster-agent:latest"
+          image: {{ .Values.savvihub.image }}
           imagePullPolicy: Always
           env:
             - name: NODE_NAME

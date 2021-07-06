@@ -22,6 +22,10 @@ spec:
       containers:
         - image: nvidia/gpu-feature-discovery:v0.2.2
           name: gpu-feature-discovery
+          securityContext:
+            privileged: true
+            capabilities:
+              drop: ["ALL"]
           volumeMounts:
             - name: output-dir
               mountPath: "/etc/kubernetes/node-feature-discovery/features.d"

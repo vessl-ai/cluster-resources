@@ -10,6 +10,8 @@ spec:
     metadata:
       labels:
         name: savvihub-agent
+        v1.k8s.savvihub.com/logs-enabled: 'true'
+        v1.k8s.savvihub.com/type: agent
     spec:
       tolerations:
 {{ toYaml .Values.tolerations | indent 8 }}

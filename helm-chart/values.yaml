@@ -6,6 +6,7 @@ savvihub:
   image: savvihub/cluster-agent:latest
   sentryDsn: https://0481c31171114c109ac911ac947f0518@o386227.ingest.sentry.io/5585090
   manageAllNamespaces: false
+  deviceListStrategy: envvar
 
 kubernetes:
   logContainerPath: /var/lib/docker/containers

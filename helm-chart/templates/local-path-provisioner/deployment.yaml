@@ -26,6 +26,8 @@ spec:
             - start
             - --config
             - /etc/config/config.json
+            - --helper-image
+            - {{ .Values.localPathProvisioner.helperImage }}
           volumeMounts:
             - name: config-volume
               mountPath: /etc/config/

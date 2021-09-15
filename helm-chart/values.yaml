@@ -13,6 +13,7 @@ kubernetes:
 
 localPathProvisioner:
   hostPath: /opt/local-path-provisioner
+  helperImage: gcr.io/google-containers/busybox:latest
 
 metricsExporters:
   dcgmExporterUseDeviceName:

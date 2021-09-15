@@ -57,5 +57,5 @@ data:
     spec:
       containers:
       - name: helper-pod
-        image: busybox
+        image: {{ .Values.localPathProvisioner.helperImage }}
 {{- end -}}

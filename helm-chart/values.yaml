@@ -13,6 +13,7 @@ kubernetes:
 
 localPathProvisioner:
   hostPath: /opt/local-path-provisioner
+  image: rancher/local-path-provisioner:v0.0.20
   helperImage: gcr.io/google-containers/busybox:latest
 
 metricsExporters:

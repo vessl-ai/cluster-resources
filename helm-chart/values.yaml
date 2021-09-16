@@ -3,7 +3,7 @@ savvihub:
   apiServer: https://api.savvihub.com
   logLevel: info
   env: prod
-  image: savvihub/cluster-agent:latest
+  image: public.ecr.aws/o8g9a7x3/cluster-agent:latest
   sentryDsn: https://0481c31171114c109ac911ac947f0518@o386227.ingest.sentry.io/5585090
   manageAllNamespaces: false
   deviceListStrategy: envvar
@@ -14,7 +14,7 @@ kubernetes:
 localPathProvisioner:
   hostPath: /opt/local-path-provisioner
   image: rancher/local-path-provisioner:v0.0.20
-  helperImage: gcr.io/google-containers/busybox:latest
+  helperImage: public.ecr.aws/o8g9a7x3/busybox:latest
 
 metricsExporters:
   dcgmExporterUseDeviceName:

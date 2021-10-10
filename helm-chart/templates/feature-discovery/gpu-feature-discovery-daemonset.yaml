@@ -33,6 +33,8 @@ spec:
               mountPath: "/sys/class/dmi/id/product_name"
       nodeSelector:
         feature.node.kubernetes.io/pci-10de.present: "true" # NVIDIA vendor ID
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
       volumes:
         - name: output-dir
           hostPath:

@@ -19,6 +19,8 @@ localPathProvisioner:
 metricsExporters:
   dcgmExporterUseDeviceName:
 
-tolerations: []
+tolerations:
+- key: CriticalAddonsOnly
+  operator: Exists
 
 preinstalledNamespace:

@@ -2,6 +2,13 @@ apiVersion: v1
 entries:
   cluster-resources:
   - apiVersion: v2
+    created: "2021-10-11T05:02:56.999394+09:00"
+    digest: 20d4a3967b4c0a6d7b9e9f763538a72622ea1fa85bba8b99c79ef508a5e12c8f
+    name: cluster-resources
+    urls:
+    - https://savvihub-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/cluster-resources-0.0.23.tgz
+    version: 0.0.23
+  - apiVersion: v2
     created: "2021-10-05T18:58:08.28792+09:00"
     digest: 6aa5ea23282846068fbed275386be6e829110877c04c9e846e3f100b2ec15b93
     name: cluster-resources
@@ -64,4 +71,4 @@ entries:
     urls:
     - https://savvihub-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/cluster-resources-0.0.13.tgz
     version: 0.0.13
-generated: "2021-10-05T18:58:08.287196+09:00"
+generated: "2021-10-11T05:02:56.998617+09:00"

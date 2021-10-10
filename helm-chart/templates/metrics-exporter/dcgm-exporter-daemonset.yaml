@@ -51,7 +51,7 @@ spec:
           operator: Exists
         - effect: NoSchedule
           operator: Exists
-{{ toYaml .Values.tolerations | indent 8 }
+{{ toYaml .Values.tolerations | indent 8 }}
       volumes:
       - name: pod-gpu-resources
         hostPath:

@@ -70,7 +70,7 @@ spec:
       tolerations:
         - effect: NoSchedule
           operator: Exists
-{{ toYaml .Values.tolerations | indent 8 }
+{{ toYaml .Values.tolerations | indent 8 }}
       volumes:
         - name: proc
           hostPath:

@@ -2,18 +2,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: local-path-provisioner
+  name: vessl-local-path-provisioner
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: local-path-provisioner
+      app: vessl-local-path-provisioner
   template:
     metadata:
       labels:
-        app: local-path-provisioner
+        app: vessl-local-path-provisioner
     spec:
-      serviceAccountName: local-path-provisioner-service-account
+      serviceAccountName: vessl-local-path-provisioner-service-account
       tolerations:
 {{ toYaml .Values.tolerations | indent 8 }}
       containers:

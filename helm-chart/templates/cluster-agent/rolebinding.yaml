@@ -1,14 +1,14 @@
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: savvihub
+  name: vessl
 subjects:
   - kind: ServiceAccount
-    name: savvihub
+    name: vessl
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: savvihub
+  name: vessl
 
 {{- if not (empty .Values.preinstalledNamespace) }}
 ---
@@ -16,14 +16,14 @@ roleRef:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: savvihub-exporters-{{ .Release.Name }}
+  name: vessl-exporters
   namespace: {{ .Values.preinstalledNamespace }}
 subjects:
   - kind: ServiceAccount
-    name: savvihub
+    name: vessl
     namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: savvihub-exporters-{{ .Release.Name }}
+  name: vessl-exporters
 {{- end -}}

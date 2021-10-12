@@ -1,23 +1,25 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: savvihub-agent
+  name: vessl-agent
 spec:
   selector:
     matchLabels:
-      name: savvihub-agent
+      name: vessl-agent
   template:
     metadata:
       labels:
-        name: savvihub-agent
+        name: vessl-agent
         v1.k8s.savvihub.com/logs-enabled: 'true'
         v1.k8s.savvihub.com/type: agent
+        v1.k8s.vessl.ai/logs-enabled: 'true'
+        v1.k8s.vessl.ai/type: agent
     spec:
       tolerations:
 {{ toYaml .Values.tolerations | indent 8 }}
       containers:
-        - name: savvihub-agent
-          image: {{ .Values.savvihub.image }}
+        - name: vessl-agent
+          image: {{ .Values.agent.image }}
           imagePullPolicy: Always
           env:
             - name: NODE_NAME
@@ -25,17 +27,17 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: spec.nodeName
-            - name: SAVVIHUB_ENV
-              value: {{ .Values.savvihub.env }}
-            - name: SAVVIHUB_API_URL
-              value: {{ .Values.savvihub.apiServer }}
-            - name: SAVVIHUB_LOG_LEVEL
-              value: {{ .Values.savvihub.logLevel }}
-            - name: SAVVIHUB_SENTRY_DSN
-              value: {{ .Values.savvihub.sentryDsn }}
-            - name: SAVVIHUB_COLLECT_ALL_NAMESPACE
-              value: "{{ .Values.savvihub.manageAllNamespaces }}"
-            - name: SAVVIHUB_PREINSTALLED_NAMESPACE
+            - name: VESSL_ENV
+              value: {{ .Values.agent.env }}
+            - name: VESSL_API_URL
+              value: {{ .Values.agent.apiServer }}
+            - name: VESSL_LOG_LEVEL
+              value: {{ .Values.agent.logLevel }}
+            - name: VESSL_SENTRY_DSN
+              value: {{ .Values.agent.sentryDsn }}
+            - name: VESSL_COLLECT_ALL_NAMESPACE
+              value: "{{ .Values.agent.manageAllNamespaces }}"
+            - name: VESSL_PREINSTALLED_NAMESPACE
               value: {{ .Values.preinstalledNamespace }}
           volumeMounts:
             - name: varlog
@@ -43,7 +45,7 @@ spec:
               readOnly: true
             - name: logcontainerpath
               readOnly: true
-              mountPath: {{ .Values.kubernetes.logContainerPath }}
+              mountPath: {{ .Values.agent.containerLogPath }}
             - name: access-token
               readOnly: true
               mountPath: /secrets
@@ -54,8 +56,8 @@ spec:
             path: /var/log
         - name: logcontainerpath
           hostPath:
-            path: {{ .Values.kubernetes.logContainerPath }}
+            path: {{ .Values.agent.logContainerPath }}
         - name: access-token
           secret:
-            secretName: savvihub-agent
-      serviceAccountName: savvihub
+            secretName: vessl-agent
+      serviceAccountName: vessl

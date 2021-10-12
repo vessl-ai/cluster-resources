@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: savvihub-node-feature-discovery
+  name: vessl-node-feature-discovery
   labels:
     app: node-feature-discovery
 spec:
@@ -14,7 +14,7 @@ spec:
       labels:
         app: node-feature-discovery
     spec:
-      serviceAccountName: savvihub-node-feature-discovery
+      serviceAccountName: vessl-node-feature-discovery
       containers:
         - env:
           - name: NODE_NAME

@@ -2,12 +2,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: savvihub-dcgm-exporter
+  name: vessl-dcgm-exporter
   labels:
     app.kubernetes.io/name: dcgm-exporter
     app.kubernetes.io/version: 2.1.1
     v1.k8s.savvihub.com/managed: 'true'
     v1.k8s.savvihub.com/type: dcgm-exporter
+    v1.k8s.vessl.ai/managed: 'true'
+    v1.k8s.vessl.ai/type: dcgm-exporter
 spec:
   selector:
     app.kubernetes.io/name: dcgm-exporter

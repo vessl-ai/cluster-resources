@@ -1,6 +1,6 @@
 savvihub:
   agentAccessToken:
-  apiServer: https://api.savvihub.com
+  apiServer: https://api.vessl.ai
   logLevel: info
   env: prod
   image: public.ecr.aws/o8g9a7x3/cluster-agent:latest
@@ -14,7 +14,7 @@ kubernetes:
 localPathProvisioner:
   hostPath: /opt/local-path-provisioner
   image: rancher/local-path-provisioner:v0.0.20
-  helperImage: public.ecr.aws/o8g9a7x3/busybox:latest
+  helperImage: public.ecr.aws/o8g9a7x3/busybox:21.10
 
 metricsExporters:
   dcgmExporterUseDeviceName:

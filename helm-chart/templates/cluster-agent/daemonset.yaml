@@ -56,7 +56,7 @@ spec:
             path: /var/log
         - name: logcontainerpath
           hostPath:
-            path: {{ .Values.agent.logContainerPath }}
+            path: {{ .Values.agent.containerLogPath }}
         - name: access-token
           secret:
             secretName: vessl-agent

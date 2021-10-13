@@ -5,8 +5,8 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: vessl
+  name: vessl-{{ .Release.Namespace }}
 subjects:
   - kind: ServiceAccount
-    name: vessl
+    name: vessl-{{ .Release.Namespace }}
     namespace: {{ .Release.Namespace }}

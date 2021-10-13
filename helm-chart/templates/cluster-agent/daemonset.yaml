@@ -27,17 +27,17 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: spec.nodeName
-            - name: VESSL_ENV
+            - name: SAVVIHUB_ENV
               value: {{ .Values.agent.env }}
-            - name: VESSL_API_URL
+            - name: SAVVIHUB_API_URL
               value: {{ .Values.agent.apiServer }}
-            - name: VESSL_LOG_LEVEL
+            - name: SAVVIHUB_LOG_LEVEL
               value: {{ .Values.agent.logLevel }}
-            - name: VESSL_SENTRY_DSN
+            - name: SAVVIHUB_SENTRY_DSN
               value: {{ .Values.agent.sentryDsn }}
-            - name: VESSL_COLLECT_ALL_NAMESPACE
+            - name: SAVVIHUB_COLLECT_ALL_NAMESPACE
               value: "{{ .Values.agent.manageAllNamespaces }}"
-            - name: VESSL_PREINSTALLED_NAMESPACE
+            - name: SAVVIHUB_PREINSTALLED_NAMESPACE
               value: {{ .Values.preinstalledNamespace }}
           volumeMounts:
             - name: varlog

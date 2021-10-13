@@ -2,6 +2,13 @@ apiVersion: v1
 entries:
   cluster-resources:
   - apiVersion: v2
+    created: "2021-10-13T20:00:38.969861+09:00"
+    digest: 8336cd71436e07e4becd9f49a6b15ec415d2313b6ca81aae51644b110f00fcfa
+    name: cluster-resources
+    urls:
+    - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/cluster-resources-0.1.5.tgz
+    version: 0.1.5
+  - apiVersion: v2
     created: "2021-10-13T19:07:29.523624+09:00"
     digest: a0c021193f8a3f18e0d91f450829cbf930a66a0d22380b0f03810f525ed635e9
     name: cluster-resources
@@ -141,4 +148,4 @@ entries:
     urls:
     - https://savvihub-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/cluster-resources-0.0.13.tgz
     version: 0.0.13
-generated: "2021-10-13T19:07:29.522762+09:00"
+generated: "2021-10-13T20:00:38.969078+09:00"

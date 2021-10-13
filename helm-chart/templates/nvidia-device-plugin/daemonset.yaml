@@ -16,7 +16,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: savvihub-nvidia-device-plugin
+  name: vessl-nvidia-device-plugin
 spec:
   selector:
     matchLabels:
@@ -49,7 +49,7 @@ spec:
       containers:
       - image: nvcr.io/nvidia/k8s-device-plugin:v0.9.0
         name: nvidia-device-plugin
-        args: [ "--fail-on-init-error=false", "--device-list-strategy={{ .Values.savvihub.deviceListStrategy }}" ]
+        args: [ "--fail-on-init-error=false", "--device-list-strategy={{ .Values.nvidiaDevicePlugin.deviceListStrategy }}" ]
         securityContext:
           privileged: true
           capabilities:

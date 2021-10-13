@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: savvihub-dcgm-exporter
+  name: vessl-dcgm-exporter
   labels:
     app.kubernetes.io/name: dcgm-exporter
     app.kubernetes.io/version: 2.1.1

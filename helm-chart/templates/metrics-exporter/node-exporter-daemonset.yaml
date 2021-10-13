@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: savvihub-node-exporter
+  name: vessl-node-exporter
 spec:
   updateStrategy:
     type: RollingUpdate

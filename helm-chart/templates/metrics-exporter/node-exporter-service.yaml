@@ -2,10 +2,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: savvihub-node-exporter
+  name: vessl-node-exporter
   labels:
     v1.k8s.savvihub.com/managed: 'true'
     v1.k8s.savvihub.com/type: node-exporter
+    v1.k8s.vessl.ai/managed: 'true'
+    v1.k8s.vessl.ai/type: node-exporter
 spec:
   type: ClusterIP
   clusterIP: None

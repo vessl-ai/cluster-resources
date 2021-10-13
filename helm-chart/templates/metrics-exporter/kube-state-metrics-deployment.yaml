@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: savvihub-kube-state-metrics
+  name: vessl-kube-state-metrics
 spec:
   selector:
     matchLabels:
@@ -35,7 +35,7 @@ spec:
                   operator: In
                   values:
                   - amd64
-      serviceAccountName: savvihub-kube-state-metrics
+      serviceAccountName: vessl-kube-state-metrics
       tolerations:
 {{ toYaml .Values.tolerations | indent 8 }}
       containers:

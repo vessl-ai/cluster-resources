@@ -5,7 +5,7 @@ agent:
   env: prod
   image: public.ecr.aws/vessl/cluster-agent:0.4.0
   sentryDsn: https://0481c31171114c109ac911ac947f0518@o386227.ingest.sentry.io/5585090
-  manageAllNamespaces: false
+  manageAllNamespaces: true
   containerLogPath: /var/lib/docker/containers
 
 nvidiaDevicePlugin:

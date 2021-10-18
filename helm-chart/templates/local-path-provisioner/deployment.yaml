@@ -28,6 +28,8 @@ spec:
             - /etc/config/config.json
             - --helper-image
             - {{ .Values.localPathProvisioner.helperImage }}
+            - --provisioner-name
+            - {{ .Values.localPathProvisioner.provisionerName }}
             - --service-account-name
             - vessl-local-path-provisioner-service-account
           volumeMounts:

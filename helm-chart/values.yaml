@@ -15,6 +15,7 @@ localPathProvisioner:
   hostPath: /opt/local-path-provisioner
   image: rancher/local-path-provisioner:v0.0.20
   helperImage: public.ecr.aws/vessl/busybox:21.10
+  provisionerName: rancher.io/local-path
 
 metricsExporters:
   dcgmExporterUseDeviceName:

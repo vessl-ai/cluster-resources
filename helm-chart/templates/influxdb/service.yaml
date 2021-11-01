@@ -1,0 +1,16 @@
+{{- if empty .Values.preinstalledNamespace -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-influxdb
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8086
+      targetPort: http
+  selector:
+    app: {{ .Release.Name }}-influxdb
+    env: dev
+  type: ClusterIP
+  {{- end -}}

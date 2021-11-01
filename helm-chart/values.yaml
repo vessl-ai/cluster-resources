@@ -30,3 +30,7 @@ mysql:
   rootPassword:
   user: aron-dev
   password:
+
+influxdb:
+  user: root
+  password:

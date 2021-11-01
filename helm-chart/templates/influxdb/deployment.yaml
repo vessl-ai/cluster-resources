@@ -1,0 +1,54 @@
+{{- if empty .Values.preinstalledNamespace -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-influxdb
+  labels:
+    app: {{ .Release.Name }}-influxdb
+    env: dev
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-influxdb
+      env: dev
+  template:
+    metadata:
+      name: "influxdb"
+      labels:
+        app: {{ .Release.Name }}-influxdb
+        env: dev
+    spec:
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-influxdb
+      containers:
+        - name: "influxdb"
+          image: "influxdb:2.0.9-alpine"
+          ports:
+            - containerPort: 8086
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          volumeMounts:
+            - name: storage
+              mountPath: /var/lib/influxdb2
+              subPath: mysql
+            - name: storage
+              mountPath: /etc/influxdb2
+              subPath: config
+          env:
+            - name: DOCKER_INFLUXDB_INIT_MODE
+              value: "setup"
+            - name: DOCKER_INFLUXDB_INIT_USERNAME
+              value: "{{ .Values.influxdb.user }}"
+            - name: DOCKER_INFLUXDB_INIT_PASSWORD
+              value: "{{ .Values.influxdb.password }}"
+            - name: DOCKER_INFLUXDB_INIT_ORG
+              value: "vessl-ai"
+            - name: DOCKER_INFLUXDB_INIT_BUCKET
+              value: "dev"
+            - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+              value: "dev-root-token"
+  {{- end -}}

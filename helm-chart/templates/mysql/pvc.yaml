@@ -1,12 +1,12 @@
-{{- if empty .Values.preinstalledNamespace -}}
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ .Release.Name }}-mysql
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
-  {{- end -}}
+#{{- if empty .Values.preinstalledNamespace -}}
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: {{ .Release.Name }}-mysql
+#spec:
+#  accessModes:
+#    - ReadWriteOnce
+#  resources:
+#    requests:
+#      storage: 10Gi
+#  {{- end -}}

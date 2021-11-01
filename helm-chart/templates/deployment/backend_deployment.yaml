@@ -1,0 +1,42 @@
+{{- if empty .Values.preinstalledNamespace -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend
+  labels:
+    app: {{ .Release.Name }}-backend
+    env: dev
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-backend
+      env: dev
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-backend
+        env: dev
+    spec:
+      containers:
+        - name: {{ .Release.Name }}-backend
+          image: {{ .Values.backend.image }}
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+            requests:
+              cpu: "1"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /api/v1/ping
+              port: 10000
+              scheme: HTTP
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}-backend
+                optional: false
+  {{- end -}}

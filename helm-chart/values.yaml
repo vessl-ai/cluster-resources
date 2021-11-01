@@ -1,3 +1,6 @@
+backend:
+  image: 962345818314.dkr.ecr.us-west-2.amazonaws.com/aron-backend:latest
+
 agent:
   accessToken:
   apiServer: https://api.vessl.ai

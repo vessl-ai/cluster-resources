@@ -1,0 +1,38 @@
+{{- if empty .Values.preinstalledNamespace -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend-batch
+  labels:
+    app: {{ .Release.Name }}-backend-batch
+    env: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-backend-batch
+      env: dev
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-backend-batch
+        env: dev
+    spec:
+      containers:
+        - name: {{ .Release.Name }}-backend-batch
+          image: {{ .Values.backend.image }}
+          command:
+            - /app/bin/app
+            - run_batches
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+            requests:
+              cpu: "0.5"
+              memory: "512Mi"
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}-backend
+                optional: false
+  {{- end -}}

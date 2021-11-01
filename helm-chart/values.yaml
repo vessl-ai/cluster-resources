@@ -25,3 +25,8 @@ tolerations:
   operator: Exists
 
 preinstalledNamespace:
+
+mysql:
+  rootPassword:
+  user: aron-dev
+  password:

@@ -1,0 +1,16 @@
+{{- if empty .Values.preinstalledNamespace -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-mysql
+spec:
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+      nodePort: 3306
+  selector:
+    app: {{ .Release.Name }}-mysql
+    env: dev
+  type: NodePort
+  {{- end -}}

@@ -1,0 +1,16 @@
+{{- if empty .Values.preinstalledNamespace -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-redis
+spec:
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+      nodePort: 6379
+  selector:
+    app: {{ .Release.Name }}-redis
+    env: dev
+  type: NodePort
+  {{- end -}}

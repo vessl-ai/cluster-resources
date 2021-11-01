@@ -1,38 +1,38 @@
-#{{- if empty .Values.preinstalledNamespace -}}
-#apiVersion: apps/v1
-#kind: Deployment
-#metadata:
-#  name: {{ .Release.Name }}-redis
-#  labels:
-#    app: {{ .Release.Name }}-redis
-#    env: dev
-#spec:
-#  selector:
-#    matchLabels:
-#      app: {{ .Release.Name }}-redis
-#      env: dev
-#  template:
-#    metadata:
-#      name: "redis"
-#      labels:
-#        app: {{ .Release.Name }}-redis
-#        env: dev
-#    spec:
-#      volumes:
-#        - name: storage
-#          persistentVolumeClaim:
-#            claimName: {{ .Release.Name }}-redis
-#      containers:
-#        - name: "redis"
-#          image: "redis:6.2.3-alpine3.13"
-#          ports:
-#            - containerPort: 6379
-#          resources:
-#            requests:
-#              cpu: 100m
-#              memory: 128Mi
-#          volumeMounts:
-#            - name: storage
-#              mountPath: /var/lib/redis
-#              subPath: redis
-#  {{- end -}}
+{{- if empty .Values.preinstalledNamespace -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-redis
+  labels:
+    app: {{ .Release.Name }}-redis
+    env: dev
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-redis
+      env: dev
+  template:
+    metadata:
+      name: "redis"
+      labels:
+        app: {{ .Release.Name }}-redis
+        env: dev
+    spec:
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-redis
+      containers:
+        - name: "redis"
+          image: "redis:6.2.3-alpine3.13"
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          volumeMounts:
+            - name: storage
+              mountPath: /var/lib/redis
+              subPath: redis
+  {{- end -}}

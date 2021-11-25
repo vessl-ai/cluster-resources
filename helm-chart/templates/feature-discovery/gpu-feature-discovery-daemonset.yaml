@@ -20,7 +20,7 @@ spec:
         app.kubernetes.io/part-of: nvidia-gpu
     spec:
       containers:
-        - image: nvidia/gpu-feature-discovery:v0.2.2
+        - image: public.ecr.aws/vessl/gpu-feature-discovery:v0.2.2
           name: gpu-feature-discovery
           securityContext:
             privileged: true

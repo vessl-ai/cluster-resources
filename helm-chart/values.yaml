@@ -3,7 +3,7 @@ agent:
   apiServer: https://api.vessl.ai
   logLevel: info
   env: prod
-  image: public.ecr.aws/vessl/cluster-agent:0.4.2
+  image: public.ecr.aws/vessl/cluster-agent:0.4.3
   sentryDsn: https://0481c31171114c109ac911ac947f0518@o386227.ingest.sentry.io/5585090
   manageAllNamespaces: true
   containerLogPath: /var/lib/docker/containers
@@ -13,7 +13,7 @@ nvidiaDevicePlugin:
 
 localPathProvisioner:
   hostPath: /opt/local-path-provisioner
-  image: rancher/local-path-provisioner:v0.0.20
+  image: public.ecr.aws/vessl/local-path-provisioner:v0.0.20
   helperImage: public.ecr.aws/vessl/busybox:21.10
   provisionerName: rancher.io/local-path
 

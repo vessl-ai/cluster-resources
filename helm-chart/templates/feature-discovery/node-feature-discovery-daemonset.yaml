@@ -21,7 +21,7 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-          image: quay.io/kubernetes_incubator/node-feature-discovery:v0.6.0
+          image: public.ecr.aws/vessl/node-feature-discovery:v0.6.0
           name: nfd-master
           command:
             - "nfd-master"
@@ -32,7 +32,7 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-          image: quay.io/kubernetes_incubator/node-feature-discovery:v0.6.0
+          image: public.ecr.aws/vessl/node-feature-discovery:v0.6.0
           name: nfd-worker
           command:
             - "nfd-worker"

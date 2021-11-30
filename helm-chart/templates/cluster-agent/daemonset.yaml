@@ -39,6 +39,14 @@ spec:
               value: "{{ .Values.agent.manageAllNamespaces }}"
             - name: VESSL_PREINSTALLED_NAMESPACE
               value: {{ .Values.preinstalledNamespace }}
+            - name: VESSL_HELM_RELEASE_NAME
+              value: {{ .Release.name }}
+            - name: VESSL_KUBERNETES_INGRESS_ENDPOINT
+              value: {{ .Values.ingressEndpoint }}
+            - name: VESSL_PROVIDER_TYPE
+              value: {{ .Values.providerType }}
+            - name: VESSL_LOCAL_STORAGE_CLASS_NAME
+              value: {{ .Values.localStorageClassName }}
           volumeMounts:
             - name: varlog
               mountPath: /var/log

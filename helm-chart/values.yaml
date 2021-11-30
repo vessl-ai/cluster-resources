@@ -1,5 +1,8 @@
 agent:
   accessToken:
+  ingressEndpoint:
+  providerType: on-premise
+  localStorageClassName:
   apiServer: https://api.vessl.ai
   logLevel: info
   env: prod

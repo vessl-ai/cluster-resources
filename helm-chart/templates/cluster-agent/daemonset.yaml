@@ -42,11 +42,13 @@ spec:
             - name: VESSL_HELM_RELEASE_NAME
               value: {{ .Release.name }}
             - name: VESSL_KUBERNETES_INGRESS_ENDPOINT
-              value: {{ .Values.ingressEndpoint }}
+              value: {{ .Values.agent.ingressEndpoint }}
             - name: VESSL_PROVIDER_TYPE
-              value: {{ .Values.providerType }}
+              value: {{ .Values.agent.providerType }}
             - name: VESSL_LOCAL_STORAGE_CLASS_NAME
-              value: {{ .Values.localStorageClassName }}
+              value: {{ .Values.agent.localStorageClassName }}
+            - name: VESSL_CONTAINER_LOG_FORMAT
+              value: {{ .Values.agent.containerLogFormat }}
           volumeMounts:
             - name: varlog
               mountPath: /var/log

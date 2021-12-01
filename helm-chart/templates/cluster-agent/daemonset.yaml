@@ -28,27 +28,27 @@ spec:
                   apiVersion: v1
                   fieldPath: spec.nodeName
             - name: VESSL_ENV
-              value: {{ .Values.agent.env }}
+              value: "{{ .Values.agent.env }}"
             - name: VESSL_API_URL
-              value: {{ .Values.agent.apiServer }}
+              value: "{{ .Values.agent.apiServer }}"
             - name: VESSL_LOG_LEVEL
-              value: {{ .Values.agent.logLevel }}
+              value: "{{ .Values.agent.logLevel }}"
             - name: VESSL_SENTRY_DSN
-              value: {{ .Values.agent.sentryDsn }}
+              value: "{{ .Values.agent.sentryDsn }}"
             - name: VESSL_COLLECT_ALL_NAMESPACE
               value: "{{ .Values.agent.manageAllNamespaces }}"
             - name: VESSL_PREINSTALLED_NAMESPACE
-              value: {{ .Values.preinstalledNamespace }}
+              value: "{{ .Values.preinstalledNamespace }}"
             - name: VESSL_HELM_RELEASE_NAME
-              value: {{ .Release.name }}
+              value: "{{ .Release.name }}"
             - name: VESSL_KUBERNETES_INGRESS_ENDPOINT
-              value: {{ .Values.agent.ingressEndpoint }}
+              value: "{{ .Values.agent.ingressEndpoint }}"
             - name: VESSL_PROVIDER_TYPE
-              value: {{ .Values.agent.providerType }}
+              value: "{{ .Values.agent.providerType }}"
             - name: VESSL_LOCAL_STORAGE_CLASS_NAME
-              value: {{ .Values.agent.localStorageClassName }}
+              value: "{{ .Values.agent.localStorageClassName }}"
             - name: VESSL_CONTAINER_LOG_FORMAT
-              value: {{ .Values.agent.containerLogFormat }}
+              value: "{{ .Values.agent.containerLogFormat }}"
           volumeMounts:
             - name: varlog
               mountPath: /var/log

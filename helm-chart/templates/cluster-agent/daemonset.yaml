@@ -40,7 +40,7 @@ spec:
             - name: VESSL_PREINSTALLED_NAMESPACE
               value: "{{ .Values.preinstalledNamespace }}"
             - name: VESSL_HELM_RELEASE_NAME
-              value: "{{ .Release.name }}"
+              value: "{{ .Release.Name }}"
             - name: VESSL_KUBERNETES_INGRESS_ENDPOINT
               value: "{{ .Values.agent.ingressEndpoint }}"
             - name: VESSL_PROVIDER_TYPE

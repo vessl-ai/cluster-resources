@@ -6,7 +6,7 @@ agent:
   apiServer: https://api.vessl.ai
   logLevel: info
   env: prod
-  image: public.ecr.aws/vessl/cluster-agent:0.4.3
+  image: public.ecr.aws/vessl/cluster-agent:0.5.2
   sentryDsn: https://0481c31171114c109ac911ac947f0518@o386227.ingest.sentry.io/5585090
   manageAllNamespaces: true
   containerLogPath: /var/lib/docker/containers

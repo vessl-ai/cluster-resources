@@ -35,10 +35,6 @@ spec:
               value: "{{ .Values.agent.logLevel }}"
             - name: VESSL_SENTRY_DSN
               value: "{{ .Values.agent.sentryDsn }}"
-            - name: VESSL_COLLECT_ALL_NAMESPACE
-              value: "{{ .Values.agent.manageAllNamespaces }}"
-            - name: VESSL_PREINSTALLED_NAMESPACE
-              value: "{{ .Values.preinstalledNamespace }}"
             - name: VESSL_HELM_RELEASE_NAME
               value: "{{ .Release.Name }}"
             - name: VESSL_KUBERNETES_INGRESS_ENDPOINT

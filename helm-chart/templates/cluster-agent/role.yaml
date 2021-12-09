@@ -6,17 +6,3 @@ rules:
   - apiGroups: ['*']
     resources: ['*']
     verbs: ['*']
-
-{{- if not (empty .Values.preinstalledNamespace) }}
----
-
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: vessl-exporters
-  namespace: {{ .Values.preinstalledNamespace }}
-rules:
-  - apiGroups: [""]
-    resources: ["services"]
-    verbs: ["list", "get", "watch"]
-{{- end -}}

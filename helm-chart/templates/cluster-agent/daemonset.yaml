@@ -42,7 +42,11 @@ spec:
             - name: VESSL_PROVIDER_TYPE
               value: "{{ .Values.agent.providerType }}"
             - name: VESSL_LOCAL_STORAGE_CLASS_NAME
+              {{- if .Values.agent.localStorageClassName }}
               value: "{{ .Values.agent.localStorageClassName }}"
+              {{- else }}
+              value: "vessl-local-path-{{ .Release.Namespace }}"
+              {{- end }}
             - name: VESSL_CONTAINER_LOG_FORMAT
               value: "{{ .Values.agent.containerLogFormat }}"
           volumeMounts:

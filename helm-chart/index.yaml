@@ -2,6 +2,13 @@ apiVersion: v1
 entries:
   cluster-resources:
   - apiVersion: v2
+    created: "2022-02-08T15:13:55.627316+09:00"
+    digest: 95ab4186ddc753b311903aeb2bd8ae9391f9cb75fb7f989386efdeb3b5cf76e0
+    name: cluster-resources
+    urls:
+    - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/cluster-resources-0.1.16.tgz
+    version: 0.1.16
+  - apiVersion: v2
     created: "2022-01-19T13:03:45.548466+09:00"
     digest: 97f9d0fd39be452672c70151b1b26bd82bb32c8de049b070fc5197b7b6abfa3e
     name: cluster-resources
@@ -106,4 +113,4 @@ entries:
     urls:
     - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/cluster-resources-0.1.0.tgz
     version: 0.1.0
-generated: "2022-01-19T13:03:45.547555+09:00"
+generated: "2022-02-08T15:13:55.626633+09:00"

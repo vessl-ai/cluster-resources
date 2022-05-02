@@ -18,7 +18,7 @@ spec:
 {{ toYaml .Values.tolerations | indent 8 }}
       containers:
         - name: local-path-provisioner
-          image: {{ .Values.localPathProvisioner.image }}
+          image: quay.io/vessl-ai/local-path-provisioner:{{- .Values.localPathProvisioner.imageVersion }}
           imagePullPolicy: IfNotPresent
           command:
             - local-path-provisioner
@@ -27,7 +27,7 @@ spec:
             - --config
             - /etc/config/config.json
             - --helper-image
-            - {{ .Values.localPathProvisioner.helperImage }}
+            - quay.io/vessl-ai/busybox:{{- .Values.localPathProvisioner.helperImageVersion }}
             - --provisioner-name
             - {{ .Values.localPathProvisioner.provisionerName }}
             - --service-account-name

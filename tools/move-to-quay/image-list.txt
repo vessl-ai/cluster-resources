@@ -1,0 +1,10 @@
+public.ecr.aws/vessl/kube-state-metrics:v1.9.7
+public.ecr.aws/vessl/node-exporter:v1.1.2
+public.ecr.aws/vessl/dcgm-exporter:2.0.13-2.1.1-ubuntu18.04
+public.ecr.aws/vessl/nvidia-device-plugin:v0.9.0
+public.ecr.aws/vessl/gpu-feature-discovery:v0.2.2
+public.ecr.aws/vessl/node-feature-discovery:v0.6.0
+public.ecr.aws/vessl/node-feature-discovery:v0.6.0
+public.ecr.aws/vessl/cluster-agent:0.5.8
+public.ecr.aws/vessl/local-path-provisioner:v0.0.20
+public.ecr.aws/vessl/busybox:21.10

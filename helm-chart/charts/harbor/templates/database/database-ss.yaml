@@ -20,7 +20,7 @@ spec:
 {{ include "harbor.labels" . | indent 8 }}
         component: database
       annotations:
-        checksum/secret: {{ include (print $.Template.BasePath "/database/database-secret.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/core/core-secret.yaml") . | sha256sum }}
 {{- if .Values.database.podAnnotations }}
 {{ toYaml .Values.database.podAnnotations | indent 8 }}
 {{- end }}
@@ -92,14 +92,16 @@ spec:
         resources:
 {{ toYaml .Values.database.internal.resources | indent 10 }}
 {{- end }}
-        envFrom:
-          - secretRef:
-              name: "{{ template "harbor.database" . }}"
         env:
           # put the data into a sub directory to avoid the permission issue in k8s with restricted psp enabled
           # more detail refer to https://github.com/goharbor/harbor-helm/issues/756
           - name: PGDATA
             value: "/var/lib/postgresql/data/pgdata"
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "harbor.core" . }}
+                key: POSTGRESQL_PASSWORD
         volumeMounts:
         - name: database-data
           mountPath: /var/lib/postgresql/data
@@ -146,13 +148,7 @@ spec:
       {{- end }}
     spec:
       accessModes: [{{ $database.accessMode | quote }}]
-      {{- if $database.storageClass }}
-      {{- if (eq "-" $database.storageClass) }}
-      storageClassName: ""
-      {{- else }}
-      storageClassName: "{{ $database.storageClass }}"
-      {{- end }}
-      {{- end }}
+      storageClassName: vessl-local-path-{{- .Release.Namespace }}
       resources:
         requests:
           storage: {{ $database.size | quote }}

@@ -8,7 +8,7 @@ expose:
     # Note: if the "expose.type" is "ingress" and TLS is disabled,
     # the port must be included in the command when pulling/pushing images.
     # Refer to https://github.com/goharbor/harbor/issues/5291 for details.
-    enabled: true
+    enabled: false
     # The source of the tls certificate. Set as "auto", "secret"
     # or "none" and fill the information in the corresponding section
     # 1) auto: generate the tls certificate automatically
@@ -215,21 +215,18 @@ persistence:
       # Specify the "storageClass" used to provision the volume. Or the default
       # StorageClass will be used (the default).
       # Set it to "-" to disable dynamic provisioning
-      storageClass: ""
       subPath: ""
       accessMode: ReadWriteOnce
       size: 200Gi
       annotations: {}
     chartmuseum:
       existingClaim: ""
-      storageClass: ""
       subPath: ""
       accessMode: ReadWriteOnce
       size: 5Gi
       annotations: {}
     jobservice:
       existingClaim: ""
-      storageClass: ""
       subPath: ""
       accessMode: ReadWriteOnce
       size: 1Gi
@@ -238,7 +235,6 @@ persistence:
     # be ignored
     database:
       existingClaim: ""
-      storageClass: ""
       subPath: ""
       accessMode: ReadWriteOnce
       size: 1Gi
@@ -247,14 +243,12 @@ persistence:
     # be ignored
     redis:
       existingClaim: ""
-      storageClass: ""
       subPath: ""
       accessMode: ReadWriteOnce
       size: 1Gi
       annotations: {}
     trivy:
       existingClaim: ""
-      storageClass: ""
       subPath: ""
       accessMode: ReadWriteOnce
       size: 5Gi

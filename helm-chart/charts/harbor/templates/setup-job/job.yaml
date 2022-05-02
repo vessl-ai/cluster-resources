@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
         - name: setup-harbor
-          image: quay.io/vessl-ai/setup-harbor-for-vessl
+          image: quay.io/vessl-ai/setup-harbor-for-vessl:latest
           command:
             - /setup-harbor
           env:

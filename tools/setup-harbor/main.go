@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -14,7 +13,6 @@ import (
 type CreateRegistryRequest struct {
 	Name        string `json:"name"`
 	Url         string `json:"url"`
-	Insecure    bool   `json:"insecure"`
 	Type        string `json:"type"`
 	Description string `json:"description"`
 }
@@ -39,15 +37,16 @@ func addRegistry(registryType, registryName, registryURL, description string) {
 		panic(err)
 	}
 	defer res.Body.Close()
-	registries := make([]interface{}, 0)
+	registries := make([]RegistryResponse, 0)
 	json.NewDecoder(res.Body).Decode(&registries)
+	log.Println("status", res.StatusCode)
+	log.Println("registries", registries)
 	registryId := 0
 	if len(registries) == 0 {
 		payload := CreateRegistryRequest{
 			Name:        registryName,
 			Url:         registryURL,
-			Insecure:    false,
-			Type:        registryName,
+			Type:        registryType,
 			Description: description,
 		}
 		pBytes, _ := json.Marshal(payload)
@@ -56,6 +55,7 @@ func addRegistry(registryType, registryName, registryURL, description string) {
 		if err != nil {
 			panic(err)
 		}
+		log.Println(res.StatusCode)
 		if res.StatusCode != 201 {
 			panic("Failed to create registry")
 		}
@@ -73,8 +73,10 @@ func addRegistry(registryType, registryName, registryURL, description string) {
 			panic("Failed to get registry")
 		}
 		registryId = registries[0].Id
+	} else {
+		registryId = registries[0].Id
 	}
-	res, err = http.Get(fmt.Sprintf("%s/api/v2.0/projects/%s/summary", registryName, basicAuthURL))
+	res, err = http.Get(fmt.Sprintf("%s/projects/%s/summary", basicAuthURL, registryName))
 	if err != nil {
 		panic(err)
 	}
@@ -98,23 +100,23 @@ func addRegistry(registryType, registryName, registryURL, description string) {
 }
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
-	defer cancel()
-	client := http.DefaultClient
+	timer := time.NewTimer(time.Minute * 10)
 	for {
-		req, err := http.NewRequestWithContext(ctx, "GET", "http://harbor/api/v2.0/ping", nil)
-		if err != nil {
-			panic(err)
+		res, _ := http.Get("http://harbor/api/v2.0/ping")
+		if res != nil {
+			if res.StatusCode == 200 {
+				break
+			}
 		}
-		req = req.WithContext(ctx)
-		res, err := client.Do(req)
-		if res.StatusCode == 200 {
-			break
-		} else if err == context.DeadlineExceeded {
-			panic("Harbor is not ready, context deadline exceeded.")
+		log.Println("Ping failed.")
+		select {
+		case <-timer.C:
+			panic("Harbor did not responded in 10 minutes.")
+		default:
+			time.Sleep(time.Second * 5)
 		}
 	}
 	addRegistry("quay", "quay", "https://quay.io", "quay.io")
-	addRegistry("dockerhub", "dockerhub", "https://hub.docker.com", "dockerhub")
+	addRegistry("docker-hub", "dockerhub", "https://hub.docker.com", "dockerhub")
 	addRegistry("harbor", "harbor", "https://harbor.vessl.ai", "harbor.vessl.ai")
 }

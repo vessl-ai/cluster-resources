@@ -5,7 +5,7 @@ metadata:
   name: vessl-gpu-feature-discovery
   labels:
     app.kubernetes.io/name: gpu-feature-discovery
-    app.kubernetes.io/version: 0.2.2
+    app.kubernetes.io/version: {{ .Values.featureDiscovery.gpuFeatureDiscovery.imageVersion }}
     app.kubernetes.io/part-of: nvidia-gpu
 spec:
   selector:
@@ -16,11 +16,11 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: gpu-feature-discovery
-        app.kubernetes.io/version: 0.2.2
+        app.kubernetes.io/version: {{ .Values.featureDiscovery.gpuFeatureDiscovery.imageVersion }}
         app.kubernetes.io/part-of: nvidia-gpu
     spec:
       containers:
-        - image: public.ecr.aws/vessl/gpu-feature-discovery:v0.2.2
+        - image: harbor.vessl/quay/vessl-ai/gpu-feature-discovery:{{- .Values.featureDiscovery.gpuFeatureDiscovery.imageVersion }}
           name: gpu-feature-discovery
           securityContext:
             privileged: true

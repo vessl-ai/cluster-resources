@@ -190,13 +190,7 @@ spec:
       {{- end }}
     spec:
       accessModes: [{{ $trivy.accessMode | quote }}]
-      {{- if $trivy.storageClass }}
-      {{- if (eq "-" $trivy.storageClass) }}
-      storageClassName: ""
-      {{- else }}
-      storageClassName: "{{ $trivy.storageClass }}"
-      {{- end }}
-      {{- end }}
+      storageClassName: vessl-local-path-{{- .Release.Namespace }}
       resources:
         requests:
           storage: {{ $trivy.size | quote }}

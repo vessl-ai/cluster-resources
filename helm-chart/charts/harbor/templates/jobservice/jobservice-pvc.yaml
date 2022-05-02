@@ -20,11 +20,5 @@ spec:
   resources:
     requests:
       storage: {{ $jobservice.size }}
-  {{- if $jobservice.storageClass }}
-    {{- if eq "-" $jobservice.storageClass }}
-  storageClassName: ""
-    {{- else }}
-  storageClassName: {{ $jobservice.storageClass }}
-    {{- end }}
-  {{- end }}
+  storageClassName: vessl-local-path-{{- .Release.Namespace }}
 {{- end }}

@@ -5,25 +5,25 @@ metadata:
   name: vessl-dcgm-exporter
   labels:
     app.kubernetes.io/name: dcgm-exporter
-    app.kubernetes.io/version: 2.1.1
+    app.kubernetes.io/version: {{ .Values.metricsExporters.dcgmExporter.imageVersion }}
 spec:
   updateStrategy:
     type: RollingUpdate
   selector:
     matchLabels:
       app.kubernetes.io/name: dcgm-exporter
-      app.kubernetes.io/version: 2.1.1
+      app.kubernetes.io/version: {{ .Values.metricsExporters.dcgmExporter.imageVersion }}
   template:
     metadata:
       labels:
         app.kubernetes.io/name: dcgm-exporter
-        app.kubernetes.io/version: 2.1.1
+        app.kubernetes.io/version: {{ .Values.metricsExporters.dcgmExporter.imageVersion }}
       name: dcgm-exporter
     spec:
       nodeSelector:
         feature.node.kubernetes.io/pci-10de.present: 'true' # NVIDIA vendor ID
       containers:
-      - image: public.ecr.aws/vessl/dcgm-exporter:2.0.13-2.1.1-ubuntu18.04
+      - image: harbor.vessl/quay/vessl-ai/dcgm-exporter:{{- .Values.metricsExporters.dcgmExporter.imageVersion }}
         env:
         - name: DCGM_EXPORTER_LISTEN
           value: ':9400'
@@ -41,7 +41,7 @@ spec:
         - name: pod-gpu-resources
           readOnly: true
           mountPath: /var/lib/kubelet/pod-resources
-        {{- if (empty .Values.metricsExporters.dcgmExporterUseDeviceName) }}
+        {{- if (empty .Values.metricsExporters.dcgmExporter.useDeviceName) }}
         command: ["dcgm-exporter", "-k"]
         {{- else }}
         command: ["dcgm-exporter", "-k", "--kubernetes-gpu-id-type", "device-name"]

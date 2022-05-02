@@ -11,17 +11,29 @@ agent:
   containerLogPath: /var/lib/docker/containers
   containerLogFormat: json
 
+featureDiscovery:
+  gpuFeatureDiscovery:
+    imageVersion: v0.2.2
+  nodeFeatureDiscovery:
+    imageVersion: v0.6.0
+
 nvidiaDevicePlugin:
   deviceListStrategy: envvar
 
 localPathProvisioner:
   hostPath: /opt/local-path-provisioner
-  image: public.ecr.aws/vessl/local-path-provisioner:v0.0.20
-  helperImage: public.ecr.aws/vessl/busybox:21.10
+  imageVersion: v0.0.20
+  helperImageVersion: "21.10"
   provisionerName: rancher.io/local-path
 
 metricsExporters:
-  dcgmExporterUseDeviceName:
+  dcgmExporter:
+    imageVersion: "2.0.13-2.1.1-ubuntu18.04"
+    useDeviceName:
+  kubeStateMetrics:
+    imageVersion: v1.9.7
+  nodeExporter:
+    imageVersion: v1.1.2
 
 tolerations:
   - key: CriticalAddonsOnly
@@ -29,3 +41,7 @@ tolerations:
 
 harbor:
   nodeSelector: {}
+  harborAdminPassword: Harbor12345
+  database:
+    internal:
+      password: changeme

@@ -95,13 +95,7 @@ spec:
       {{- end }}
     spec:
       accessModes: [{{ $redis.accessMode | quote }}]
-      {{- if $redis.storageClass }}
-      {{- if (eq "-" $redis.storageClass) }}
-      storageClassName: ""
-      {{- else }}
-      storageClassName: "{{ $redis.storageClass }}"
-      {{- end }}
-      {{- end }}
+      storageClassName: vessl-local-path-{{- .Release.Namespace }}
       resources:
         requests:
           storage: {{ $redis.size | quote }}

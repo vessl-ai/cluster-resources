@@ -57,5 +57,5 @@ data:
     spec:
       containers:
       - name: helper-pod
-        image: {{ .Values.localPathProvisioner.helperImage }}
+        image: quay.io/vessl-ai/busybox:{{- .Values.localPathProvisioner.helperImageVersion }}
 {{- end -}}

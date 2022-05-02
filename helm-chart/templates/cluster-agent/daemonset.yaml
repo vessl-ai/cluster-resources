@@ -19,7 +19,7 @@ spec:
 {{ toYaml .Values.tolerations | indent 8 }}
       containers:
         - name: vessl-agent
-          image: public.ecr.aws/vessl/cluster-agent:{{- .Values.agent.imageVersion }}
+          image: harbor.vessl/quay/vessl-ai/cluster-agent:{{- .Values.agent.imageVersion }}
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_NAME

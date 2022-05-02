@@ -88,13 +88,13 @@ app: "{{ template "harbor.name" . }}"
 {{- end -}}
 
 {{- define "harbor.admin.password" -}}
-  {{- randAlphaNum 24 | nospace -}}
+  {{- (randAlphaNum 24) | nospace | b64enc | quote -}}
 {{- end -}}
   
 
 {{- define "harbor.database.rawPassword" -}}
   {{- if eq .Values.database.type "internal" -}}
-    {{- randAlphaNum 24 | nospace -}}
+    {{- (randAlphaNum 24) | nospace -}}
   {{- else -}}
     {{- .Values.database.external.password -}}
   {{- end -}}

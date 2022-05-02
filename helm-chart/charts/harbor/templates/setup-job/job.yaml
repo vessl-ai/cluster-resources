@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: setup-harbor
+spec:
+  template:
+    spec:
+      containers:
+        - name: setup-harbor
+          image: quay.io/vessl-ai/setup-harbor-for-vessl
+          command:
+            - /setup-harbor
+          env:
+            - name: HARBOR_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "harbor.core" . }}
+                  key: HARBOR_ADMIN_PASSWORD
+                  optional: false
+      restartPolicy: OnFailure

@@ -1,0 +1,18 @@
+{{- if eq .Values.harbor.enabled true -}}
+# Source: cluster-resources/charts/harbor/templates/jobservice/jobservice-cm-env.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "vessl-harbor-jobservice-env"
+  labels:
+{{ include "harbor.labels" . | indent 4 }}
+data:
+  CORE_URL: "http://vessl-harbor-core:80"
+  TOKEN_SERVICE_URL: "http://vessl-harbor-core:80/service/token"
+  REGISTRY_URL: "http://vessl-harbor-registry:5000"
+  REGISTRY_CONTROLLER_URL: "http://vessl-harbor-registry:8080"
+  REGISTRY_CREDENTIAL_USERNAME: "harbor_registry_user"
+  HTTP_PROXY: ""
+  HTTPS_PROXY: ""
+  NO_PROXY: "vessl-harbor-core,vessl-harbor-jobservice,vessl-harbor-database,vessl-harbor-chartmuseum,vessl-harbor-notary-server,vessl-harbor-notary-signer,vessl-harbor-registry,vessl-harbor-portal,vessl-harbor-trivy,vessl-harbor-exporter,127.0.0.1,localhost,.local,.internal"
+{{- end -}}

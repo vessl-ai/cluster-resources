@@ -40,7 +40,7 @@ spec:
       hostPID: true
       containers:
       - name: node-exporter
-        image: harbor.vessl/quay/vessl-ai/node-exporter:{{- .Values.metricsExporters.nodeExporter.imageVersion }}
+        image: {{ template "harbor.image.source" . -}}/node-exporter:{{- .Values.metricsExporters.nodeExporter.imageVersion }}
         args:
           - --path.procfs=/host/proc
           - --path.sysfs=/host/sys

@@ -1,0 +1,62 @@
+{{- if eq .Values.harbor.enabled true -}}
+# Source: cluster-resources/charts/harbor/templates/redis/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vessl-harbor-redis
+  labels:
+{{ include "harbor.labels" . | indent 4 }}
+    component: redis
+spec:
+  replicas: 1
+  serviceName: vessl-harbor-redis
+  selector:
+    matchLabels:
+{{ include "harbor.matchLabels" . | indent 6 }}
+      component: redis
+  template:
+    metadata:
+      labels:
+{{ include "harbor.labels" . | indent 8 }}
+        component: redis
+    spec:
+      securityContext:
+        runAsUser: 999
+        fsGroup: 999
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 120
+      containers:
+      - name: redis
+        image: goharbor/redis-photon:v2.5.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 300
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 1
+          periodSeconds: 10
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/redis
+          subPath: 
+      {{- with .Values.harbor.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      labels:
+{{ include "harbor.labels" . | indent 8 }}
+      annotations:
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: vessl-local-path-vessl
+      resources:
+        requests:
+          storage: "1Gi"
+{{- end -}}

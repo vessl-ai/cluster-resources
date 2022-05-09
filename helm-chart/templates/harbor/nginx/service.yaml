@@ -1,0 +1,19 @@
+{{- if eq .Values.harbor.enabled true -}}
+# Source: cluster-resources/charts/harbor/templates/nginx/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: harbor
+  labels:
+{{ include "harbor.labels" . | indent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: {{ required "A valid clusterIP is required!" .Values.harbor.clusterIP }}
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  selector:
+{{ include "harbor.matchLabels" . | indent 4 }}
+    component: nginx
+{{- end -}}

@@ -21,7 +21,7 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-          image: harbor.vessl/quay/vessl-ai/node-feature-discovery:{{- .Values.featureDiscovery.nodeFeatureDiscovery.imageVersion }}
+          image: {{ template "harbor.image.source" . -}}/node-feature-discovery:{{- .Values.featureDiscovery.nodeFeatureDiscovery.imageVersion }}
           name: nfd-master
           command:
             - "nfd-master"
@@ -32,7 +32,7 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-          image: harbor.vessl/quay/vessl-ai/node-feature-discovery:{{- .Values.featureDiscovery.nodeFeatureDiscovery.imageVersion }}
+          image: {{ template "harbor.image.source" . -}}/node-feature-discovery:{{- .Values.featureDiscovery.nodeFeatureDiscovery.imageVersion }}
           name: nfd-worker
           command:
             - "nfd-worker"

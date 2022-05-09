@@ -1,0 +1,19 @@
+{{- if eq .Values.harbor.enabled true -}}
+# Source: cluster-resources/charts/harbor/templates/registry/registry-pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: vessl-harbor-registry
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+{{ include "harbor.labels" . | indent 4 }}
+    component: registry
+spec:
+  accessModes: 
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Gi
+  storageClassName: vessl-local-path-vessl
+{{- end -}}

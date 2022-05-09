@@ -23,7 +23,7 @@ spec:
       nodeSelector:
         feature.node.kubernetes.io/pci-10de.present: 'true' # NVIDIA vendor ID
       containers:
-      - image: harbor.vessl/quay/vessl-ai/dcgm-exporter:{{- .Values.metricsExporters.dcgmExporter.imageVersion }}
+      - image: {{ template "harbor.image.source" . -}}/dcgm-exporter:{{- .Values.metricsExporters.dcgmExporter.imageVersion }}
         env:
         - name: DCGM_EXPORTER_LISTEN
           value: ':9400'

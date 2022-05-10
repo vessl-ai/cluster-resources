@@ -3,9 +3,9 @@ agent:
   ingressEndpoint:
   providerType: on-premise
   localStorageClassName:
-  apiServer: https://api.vessl.ai
+  apiServer: https://api.dev.vessl.ai
   logLevel: info
-  env: prod
+  env: dev
   imageVersion: "0.5.8"
   sentryDsn: https://0481c31171114c109ac911ac947f0518@o386227.ingest.sentry.io/5585090
   containerLogPath: /var/lib/docker/containers

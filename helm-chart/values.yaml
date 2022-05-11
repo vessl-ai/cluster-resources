@@ -3,7 +3,7 @@ agent:
   ingressEndpoint:
   providerType: on-premise
   localStorageClassName:
-  apiServer: https://api.dev.vessl.ai
+  apiServer: https://api.dev.vssl.ai
   logLevel: info
   env: dev
   imageVersion: "0.5.8"

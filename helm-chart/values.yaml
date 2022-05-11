@@ -40,10 +40,10 @@ tolerations:
     operator: Exists
 
 harbor:
-  enabled: true
+  enabled: false
   mirrorSourceType: quay # one of quay, vessl-harbor
   nodeSelector: {}
   harborAdminPassword: Harbor12345
   registryPassword: changeme
   databasePassword: changeme2
-  clusterIP: "10.96.255.255"
+  clusterIP: # @XXX: consult with vessl team if you are going to use client-side harbor

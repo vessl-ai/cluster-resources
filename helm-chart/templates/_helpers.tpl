@@ -34,18 +34,18 @@ app: "harbor"
   {{- include "harbor.database.rawPassword" . | b64enc | quote -}}
 {{- end -}}
 
-{{- define "harbor.image.sourceType" -}}
+{{- define "vessl.image.sourceType" -}}
   {{- .Values.harbor.mirrorSourceType | default "quay" -}}
 {{- end -}}
 
-{{- define "harbor.image.source" -}}
-  {{- if eq (include "harbor.image.sourceType" .) "quay" -}}
+{{- define "vessl.image.source" -}}
+  {{- if eq (include "vessl.image.sourceType" .) "quay" -}}
     {{- if .Values.harbor.enabled -}}
       {{- .Values.harbor.clusterIP -}}/quay/vessl-ai
     {{- else -}}
       quay.io/vessl-ai
     {{- end -}}
-  {{- else if eq (include "harbor.image.sourceType" .) "vessl-harbor" -}}
+  {{- else if eq (include "vessl.image.sourceType" .) "vessl-harbor" -}}
     {{- if .Values.harbor.enabled -}}
       {{- .Values.harbor.clusterIP -}}/harbor/public
     {{- else -}}

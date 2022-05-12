@@ -10,6 +10,8 @@ metadata:
 spec:
   replicas: 1
   serviceName: "vessl-harbor-database"
+  updateStrategy:
+    type: OnDelete
   selector:
     matchLabels:
 {{ include "harbor.matchLabels" . | indent 6 }}

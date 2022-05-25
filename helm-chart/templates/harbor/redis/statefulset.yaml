@@ -44,9 +44,13 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /var/lib/redis
-          subPath: 
+          subPath:
       {{- with .Values.harbor.nodeSelector }}
       nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.harbor.tolerations }}
+      tolerations:
 {{ toYaml . | indent 8 }}
       {{- end }}
   volumeClaimTemplates:

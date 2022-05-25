@@ -61,7 +61,7 @@ spec:
         volumeMounts:
         - name: registry-data
           mountPath: /storage
-          subPath: 
+          subPath:
         - name: registry-htpasswd
           mountPath: /etc/registry/passwd
           subPath: passwd
@@ -108,7 +108,7 @@ spec:
         volumeMounts:
         - name: registry-data
           mountPath: /storage
-          subPath: 
+          subPath:
         - name: registry-config
           mountPath: /etc/registry/config.yml
           subPath: config.yml
@@ -130,6 +130,10 @@ spec:
           claimName: vessl-harbor-registry
       {{- with .Values.harbor.nodeSelector }}
       nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.harbor.tolerations }}
+      tolerations:
 {{ toYaml . | indent 8 }}
       {{- end }}
 {{- end -}}

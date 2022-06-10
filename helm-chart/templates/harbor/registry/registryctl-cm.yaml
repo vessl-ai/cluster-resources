@@ -1,0 +1,10 @@
+{{- if eq .Values.harbor.enabled true -}}
+# Source: cluster-resources/charts/harbor/templates/registry/registryctl-cm.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "vessl-harbor-registryctl"
+  labels:
+{{ include "harbor.labels" . | indent 4 }}
+data:
+{{- end -}}

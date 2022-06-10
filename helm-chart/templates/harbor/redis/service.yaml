@@ -1,0 +1,15 @@
+{{- if eq .Values.harbor.enabled true -}}
+# Source: cluster-resources/charts/harbor/templates/redis/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: vessl-harbor-redis
+  labels:
+{{ include "harbor.labels" . | indent 4 }}
+spec:
+  ports:
+    - port: 6379
+  selector:
+{{ include "harbor.matchLabels" . | indent 4 }}
+    component: redis
+{{- end -}}

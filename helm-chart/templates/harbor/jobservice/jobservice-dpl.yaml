@@ -1,0 +1,88 @@
+{{- if eq .Values.harbor.enabled true -}}
+# Source: cluster-resources/charts/harbor/templates/jobservice/jobservice-dpl.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "vessl-harbor-jobservice"
+  labels:
+{{ include "harbor.labels" . | indent 4 }}
+    component: jobservice
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+{{ include "harbor.matchLabels" . | indent 6 }}
+      component: jobservice
+  template:
+    metadata:
+      labels:
+{{ include "harbor.labels" . | indent 8 }}
+        component: jobservice
+      annotations:
+        checksum/configmap: {{ include (print $.Template.BasePath "/harbor/jobservice/jobservice-cm.yaml") . | sha256sum }}
+        checksum/configmap-env: {{ include (print $.Template.BasePath "/harbor/jobservice/jobservice-cm-env.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/harbor/jobservice/jobservice-secrets.yaml") . | sha256sum }}
+        checksum/secret-core: {{ include (print $.Template.BasePath "/harbor/core/core-secret.yaml") . | sha256sum }}
+    spec:
+      securityContext:
+        runAsUser: 10000
+        fsGroup: 10000
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 120
+      containers:
+      - name: jobservice
+        image: goharbor/harbor-jobservice:v2.5.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /api/v1/stats
+            scheme: HTTP
+            port: 8080
+          initialDelaySeconds: 300
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/v1/stats
+            scheme: HTTP
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        env:
+          - name: CORE_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: vessl-harbor-core
+                key: secret
+        envFrom:
+        - configMapRef:
+            name: "vessl-harbor-jobservice-env"
+        - secretRef:
+            name: "vessl-harbor-jobservice"
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: jobservice-config
+          mountPath: /etc/jobservice/config.yml
+          subPath: config.yml
+        - name: job-logs
+          mountPath: /var/log/jobs
+          subPath:
+      volumes:
+      - name: jobservice-config
+        configMap:
+          name: "vessl-harbor-jobservice"
+      - name: job-logs
+        persistentVolumeClaim:
+          claimName: vessl-harbor-jobservice
+      {{- with .Values.harbor.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.harbor.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+{{- end -}}

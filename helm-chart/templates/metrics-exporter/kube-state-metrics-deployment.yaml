@@ -40,7 +40,7 @@ spec:
 {{ toYaml .Values.tolerations | indent 8 }}
       containers:
       - name: kube-state-metrics
-        image: public.ecr.aws/vessl/kube-state-metrics:v1.9.7
+        image: {{ template "vessl.image.source" . -}}/kube-state-metrics:{{- .Values.metricsExporters.kubeStateMetrics.imageVersion }}
         ports:
         - name: metrics
           containerPort: 8080

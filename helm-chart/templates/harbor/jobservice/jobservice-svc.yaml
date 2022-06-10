@@ -1,0 +1,17 @@
+{{- if eq .Values.harbor.enabled true -}}
+# Source: cluster-resources/charts/harbor/templates/jobservice/jobservice-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: "vessl-harbor-jobservice"
+  labels:
+{{ include "harbor.labels" . | indent 4 }}
+spec:
+  ports:
+    - name: http-jobservice
+      port: 80
+      targetPort: 8080
+  selector:
+{{ include "harbor.matchLabels" . | indent 4 }}
+    component: jobservice
+{{- end -}}

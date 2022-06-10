@@ -1,0 +1,17 @@
+{{- if eq .Values.harbor.enabled true -}}
+# Source: cluster-resources/charts/harbor/templates/core/core-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: vessl-harbor-core
+  labels:
+{{ include "harbor.labels" . | indent 4 }}
+spec:
+  ports:
+    - name: http-web
+      port: 80
+      targetPort: 8080
+  selector:
+{{ include "harbor.matchLabels" . | indent 4 }}
+    component: core
+{{- end -}}

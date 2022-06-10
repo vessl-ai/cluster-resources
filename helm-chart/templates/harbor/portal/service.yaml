@@ -1,0 +1,16 @@
+{{- if eq .Values.harbor.enabled true -}}
+# Source: cluster-resources/charts/harbor/templates/portal/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: "vessl-harbor-portal"
+  labels:
+{{ include "harbor.labels" . | indent 4 }}
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+{{ include "harbor.matchLabels" . | indent 4 }}
+    component: portal
+{{- end -}}

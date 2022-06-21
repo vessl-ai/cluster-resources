@@ -5,7 +5,7 @@ metadata:
   name: vessl-dcgm-exporter
   labels:
     app.kubernetes.io/name: dcgm-exporter
-    app.kubernetes.io/version: 2.1.1
+    app.kubernetes.io/version: {{ .Values.metricsExporters.dcgmExporter.imageVersion }}
     v1.k8s.savvihub.com/managed: 'true'
     v1.k8s.savvihub.com/type: dcgm-exporter
     v1.k8s.vessl.ai/managed: 'true'
@@ -13,7 +13,7 @@ metadata:
 spec:
   selector:
     app.kubernetes.io/name: dcgm-exporter
-    app.kubernetes.io/version: 2.1.1
+    app.kubernetes.io/version: {{ .Values.metricsExporters.dcgmExporter.imageVersion }}
   ports:
     - name: metrics
       port: 9400

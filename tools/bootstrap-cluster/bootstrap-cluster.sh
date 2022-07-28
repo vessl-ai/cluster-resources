@@ -166,6 +166,7 @@ if ! _command_exists nvidia-docker; then
       curl -fsSL "https://developer.download.nvidia.com/compute/cuda/repos/${distribution//.}/$(uname -m)/cuda-keyring_1.0-1_all.deb" -o "${nvidia_keyring_path}"
       yes | sudo dpkg -i "${nvidia_keyring_path}"
       sudo rm -f "${nvidia_keyring_path}"
+      unset nvidia_keyring_path
       sudo apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/${distribution//.}/$(uname -m)/3bf863cc.pub"
       sudo apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/machine-learning/repos/${distribution//.}/$(uname -m)/7fa2af80.pub"
       sudo apt-get update
@@ -195,7 +196,9 @@ EOF
       fi
       ;;
     centos)
-      echo "centos" # Centos / RHEL
+      # shellcheck source=/dev/null
+      centos_major_version="$(cat /etc/centos-release | tr -dc '0-9)')"
+      echo "CentOS $centos_major_version - TODO"
       ;;
   esac
 fi

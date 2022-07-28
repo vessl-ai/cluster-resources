@@ -90,9 +90,7 @@ esac
 echo "Setting up virtualenv to install required tools..."
 asdf install python $VSSL_PYTHON_VERSION
 asdf local python $VSSL_PYTHON_VERSION
-python -m pip install virtualenv
-asdf reshim python
-virtualenv -p "$(asdf where python)/bin/python" vessl-bootstrap-cluster
+python -m venv vessl-bootstrap-cluster
 # shellcheck source=/dev/null
 source ./vessl-bootstrap-cluster/bin/activate
 

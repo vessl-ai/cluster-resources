@@ -173,7 +173,21 @@ if ! _command_exists nvidia-docker; then
 
       tty_mkbold "Installing nvidia-docker..."
       sudo apt-get install -y nvidia-docker2
-      cat <<-EOF > /etc/docker/daemon.json
+
+
+      ;;
+    centos)
+      # shellcheck source=/dev/null
+      centos_major_version="$(cat /etc/centos-release | tr -dc '0-9)')"
+      echo "CentOS $centos_major_version - TODO"
+      ;;
+  esac
+fi
+
+
+
+tty_mkbold "Updating Docker runtime to nvidia-container-runtime (requires Docker daemon restart) ..."
+cat <<-EOF > /etc/docker/daemon.json
 {
     "default-runtime": "nvidia",
     "live-restore": true,
@@ -185,20 +199,10 @@ if ! _command_exists nvidia-docker; then
     }
 }
 EOF
+sudo systemctl restart docker
 
-      tty_mkbold "Restarting Docker daemon..."
-      sudo systemctl restart docker
-
-      tty_mkbold "Verifying nvidia-docker2 is working correctly..."
-      cuda_major_version="$(_cuda_version | cut -d '.' -f 1)"
-      if ! sudo docker run --gpus all "nvidia/cuda:$cuda_major_version.0-base-ubuntu18.04" nvidia-smi; then
-        abort "ERROR: nvidia-docker is not working correctly, please retry or reach out support@vessl.ai for help."
-      fi
-      ;;
-    centos)
-      # shellcheck source=/dev/null
-      centos_major_version="$(cat /etc/centos-release | tr -dc '0-9)')"
-      echo "CentOS $centos_major_version - TODO"
-      ;;
-  esac
+tty_mkbold "Verifying nvidia-docker2 is working correctly..."
+cuda_major_version="$(_cuda_version | cut -d '.' -f 1)"
+if ! sudo docker run --gpus all "nvidia/cuda:$cuda_major_version.0-base-ubuntu18.04" nvidia-smi; then
+  abort "ERROR: nvidia-docker is not working correctly, please retry or reach out support@vessl.ai for help."
 fi

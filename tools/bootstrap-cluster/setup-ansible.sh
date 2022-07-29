@@ -19,6 +19,7 @@ set -u
 # Environment variables
 # ---------------------
 VSSL_PYTHON_VERSION="3.8.12"
+VSSL_VENV_DIR="vessl-bootstrap-cluster"
 
 # ----------------
 # Helper functions
@@ -90,9 +91,14 @@ esac
 echo "Setting up virtualenv to install required tools..."
 asdf install python $VSSL_PYTHON_VERSION
 asdf local python $VSSL_PYTHON_VERSION
-python -m venv vessl-bootstrap-cluster
+python -m venv $VSSL_VENV_DIR
 # shellcheck source=/dev/null
-source ./vessl-bootstrap-cluster/bin/activate
+source ./$VSSL_VENV_DIR/bin/activate
 
 echo "Installing Ansible (remote deployment automation tool) to virtualenv..."
 pip install ansible==5.10.0
+
+echo
+echo "*** Setup complete ***"
+echo "To use Ansible and run cluster bootstrapper playbook, run: source ${VSSL_VENV_DIR}/bin/activate"
+echo

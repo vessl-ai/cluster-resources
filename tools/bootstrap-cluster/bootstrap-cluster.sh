@@ -43,14 +43,13 @@ K0S_ROLE="controller"
 K0S_JOIN_TOKEN=""
 
 print_help() {
-  echo "usage: $0 [options] <cluster-name>"
+  echo "usage: $0 [options]"
   echo "Bootstraps a node into an k8s cluster connectable to VESSL"
   echo ""
   echo "-h,--help print this help"
-  echo "--role node's role in the cluster (controller or worker)"
-  echo "--token token to join k0s cluster - necessary when --role=worker."
-  echo "        run 'sudo k0s token create --role worker' from a controller node to get one"
-  echo "--meow say 'meow' and exit"
+  echo "--role    node's role in the cluster (controller or worker)"
+  echo "--token   token to join k0s cluster - necessary when --role=worker."
+  echo "          run 'sudo k0s token create --role worker' from a controller node to get one"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -297,7 +296,10 @@ if [ "$K0S_ROLE" == "controller" ]; then
     --cri-socket=docker:unix:///var/run/docker.sock \
     --kubelet-extra-args="--network-plugin=cni"
 elif [ "$K0S_ROLE" == "worker" ]; then
-  echo "$K0S_TOKEN" | sudo tee $k0s_config_path/token
+  if [ "$K0S_JOIN_TOKEN" == "" ]; then
+    abort "ERROR: cluster join token is not set.\nPlease set --token option to join the cluster."
+  fi
+  echo "$K0S_JOIN_TOKEN" | sudo tee $k0s_config_path/token
   sudo k0s install worker \
     --token-file $k0s_config_path/token \
     --cri-socket=docker:unix:///var/run/docker.sock \

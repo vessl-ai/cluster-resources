@@ -186,7 +186,7 @@ elif ! _command_exists nvidia-container-toolkit; then
   case "$os" in
     ubuntu)
       bold "Moving existing nvidia-docker source repository targets to /tmp/apt-sources-nvidia-docker"
-      mkdir -p /tmp/apt-sources-nvidia-docker
+      sudo mkdir -p /tmp/apt-sources-nvidia-docker
       sudo mv -v /etc/apt/sources.list.d/*nvidia* /tmp/apt-sources-nvidia-docker
 
       bold "Setting up nvidia-container-toolkit repository and GPG key"
@@ -284,7 +284,7 @@ fi
 bold "Running k0s as $K0S_ROLE"
 k0s_config_path="/opt/vessl/k0s"
 bold "Writing k0s cluster configuration to $k0s_config_path"
-mkdir -p $k0s_config_path
+sudo mkdir -p $k0s_config_path
 
 if [ "$K0S_ROLE" == "controller" ]; then
   sudo k0s config create | sudo tee $k0s_config_path/k0s.yaml

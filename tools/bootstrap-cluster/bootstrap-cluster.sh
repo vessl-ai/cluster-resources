@@ -226,10 +226,12 @@ elif ! _command_exists nvidia-container-toolkit; then
       unset centos_major_version
       ;;
   esac
+else
+  bold "NVIDIA Driver and Container Toolkit already installed, skipping"
 fi
 
 bold "Updating Docker runtime to nvidia-container-runtime"
-cat <<-EOF > /etc/docker/daemon.json
+cat <<-EOF | sudo tee /etc/docker/daemon.json
 {
     "default-runtime": "nvidia",
     "live-restore": true,

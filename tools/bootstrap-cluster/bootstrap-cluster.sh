@@ -310,7 +310,7 @@ sudo k0s start
 bold "Waiting for k0s $K0S_ROLE to be ready"
 sleep 3
 count=0
-until (sudo systemctl status "k0s$K0S_ROLE" | grep -m1 'Active: active (running)') || [[ $count -eq 10 ]]; do
+until sudo systemctl is-active --quiet "k0s$K0S_ROLE" || [[ $count -eq 10 ]]; do
   (( count++ ))
   echo -e "...\c"
   sleep 3
@@ -322,9 +322,9 @@ fi
 
 if [ "$K0S_ROLE" == "controller" ]; then
   k0s_token=$(sudo k0s token create --role=worker)
-  bold "-------------------\nBootstrap complete!\n-------------------\nRun following command on the worker node to join the cluster:\n$ bootstrap-cluster.sh --role worker --token $k0s_token"
+  bold "-------------------\nBootstrap complete!\n-------------------\n\nRun following command on the worker node to join the cluster:\n$ bootstrap-cluster.sh --role worker --token \"$k0s_token\"\n"
   unset k0s_token
 elif [ "$K0S_ROLE" == "worker" ]; then
-  bold "-------------------\nBootstrap complete!\n-------------------\n"
+  bold "-------------------\nBootstrap complete!\n-------------------\n\n"
 fi
 

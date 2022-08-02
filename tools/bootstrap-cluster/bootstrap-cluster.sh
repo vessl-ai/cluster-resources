@@ -5,22 +5,9 @@ if [ -n "${DEBUG}" ]; then
   set -x
 fi
 
-if [[ -t 1 ]]
-then
-  tty_escape() { printf "\033[%sm" "$1"; }
-else
-  tty_escape() { :; }
-fi
-tty_mkbold() { tty_escape "1;$1"; }
-tty_underline="$(tty_escape "4;39")"
-tty_blue="$(tty_mkbold 34)"
-tty_red="$(tty_mkbold 31)"
-tty_bold="$(tty_mkbold 39)"
-tty_reset="$(tty_escape 0)"
-
-abort() {
-  printf "%s\n" "$@" >&2
-  exit 1
+function bold() {
+  echo -e "\033[1m$1\033[0m$2"
+  tput sgr0
 }
 
 # Fail fast with a concise message when not using bash
@@ -156,14 +143,14 @@ _detect_arch() {
 # Install and enable Docker
 # -------------------------
 if ! _command_exists docker; then
-  tty_mkbold "Command 'docker' not found, installing Docker"
+  bold "Command 'docker' not found, installing Docker"
   docker_script_path=$(mktemp)
   curl -fsSL get.docker.com -o "${docker_script_path}"
   sudo sh "${docker_script_path}"
   sudo rm -f "${docker_script_path}"
   unset docker_script_path
 
-  tty_mkbold "Adding user to Docker usergroup"
+  bold "Adding user to Docker usergroup"
   if ! getent group docker > /dev/null; then
     sudo groupadd docker
     newgrp docker
@@ -172,7 +159,7 @@ if ! _command_exists docker; then
   fi
 fi
 
-tty_mkbold "Enabling Docker daemon"
+bold "Enabling Docker daemon"
 sudo systemctl --now enable docker
 
 # ----------------------------------------------------------------------------------------------
@@ -187,18 +174,18 @@ sudo systemctl --now enable docker
 # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/arch-overview.html
 # ----------------------------------------------------------------------------------------------
 if ! _command_exists nvidia-smi; then
-  tty_mkbold "NVIDIA Driver does not exists(Machine without GPU?), skipping nvidia-docker2 installation."
-  tty_mkbold "Please reach out to support@vessl.ai if you need technical support for non-NVIDIA accelerators."
+  bold "NVIDIA Driver does not exists(Machine without GPU?), skipping nvidia-docker2 installation."
+  bold "Please reach out to support@vessl.ai if you need technical support for non-NVIDIA accelerators."
 elif ! _command_exists nvidia-docker; then
-  tty_mkbold "NVIDIA Container Toolkit not found, Installing nvidia-docker2"
+  bold "NVIDIA Container Toolkit not found, Installing nvidia-docker2"
   os="$(_detect_os)"
   case "$os" in
     ubuntu)
-      tty_mkbold "Moving existing nvidia-docker source repository targets to /tmp/apt-sources-nvidia-docker"
+      bold "Moving existing nvidia-docker source repository targets to /tmp/apt-sources-nvidia-docker"
       mkdir -p /tmp/apt-sources-nvidia-docker
       sudo mv -v /etc/apt/sources.list.d/*nvidia* /tmp/apt-sources-nvidia-docker
 
-      tty_mkbold "Setting up nvidia-container-toolkit repository and GPG key"
+      bold "Setting up nvidia-container-toolkit repository and GPG key"
       # shellcheck source=/dev/null
       distribution=$(. /etc/os-release; echo "$ID""$VERSION_ID" | tr "[:upper:]" "[:lower:]")
       curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
@@ -206,7 +193,7 @@ elif ! _command_exists nvidia-docker; then
         sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
         sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
-      tty_mkbold "Updating public keys for nvidia-container-toolkit repositories"
+      bold "Updating public keys for nvidia-container-toolkit repositories"
       # GPG keys for nvidia-container-toolkit repositories: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation-network
       # GPG keys for DGX machines https://docs.nvidia.com/dgx/dgx-os-release-notes/index.html#rotating-gpg-keys
       sudo apt-key del 7fa2af80
@@ -219,16 +206,16 @@ elif ! _command_exists nvidia-docker; then
       sudo apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/machine-learning/repos/${distribution//.}/$(uname -m)/7fa2af80.pub"
       sudo apt-get update
 
-      tty_mkbold "Installing nvidia-docker"
+      bold "Installing nvidia-docker"
       sudo apt-get install -y nvidia-docker2
       ;;
     centos)
-      tty_mkbold "Setting up nvidia-container-toolkit repository and GPG key"
+      bold "Setting up nvidia-container-toolkit repository and GPG key"
       # shellcheck source=/dev/null
       distribution=$(. /etc/os-release; echo "$ID$VERSION_ID") \
         && curl -s -L https://nvidia.github.io/libnvidia-container/"$distribution"/libnvidia-container.repo | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
 
-      tty_mkbold "Installing nvidia-docker"
+      bold "Installing nvidia-docker"
       centos_major_version="$(< /etc/centos-release tr -dc '0-9)')"
       if [ "$centos_major_version" == "7" ]; then
         sudo yum clean expire-cache
@@ -242,7 +229,7 @@ elif ! _command_exists nvidia-docker; then
   esac
 fi
 
-tty_mkbold "Updating Docker runtime to nvidia-container-runtime"
+bold "Updating Docker runtime to nvidia-container-runtime"
 cat <<-EOF > /etc/docker/daemon.json
 {
     "default-runtime": "nvidia",
@@ -256,10 +243,10 @@ cat <<-EOF > /etc/docker/daemon.json
 }
 EOF
 
-tty_mkbold "Restarting Docker daemon"
+bold "Restarting Docker daemon"
 sudo systemctl restart docker
 
-tty_mkbold "Verifying nvidia-docker2 is working correctly"
+bold "Verifying nvidia-docker2 is working correctly"
 cuda_major_version="$(_cuda_version | cut -d '.' -f 1)"
 if ! sudo docker run --gpus all "nvidia/cuda:$cuda_major_version.0-base-ubuntu18.04" nvidia-smi; then
   abort "ERROR: nvidia-docker is not working correctly.\nIf the problem persists after retry, please reach out support@vessl.ai for technical support."
@@ -270,22 +257,22 @@ unset cuda_major_version
 # Install k0s
 # -----------
 if ! _command_exists k0s; then
-  tty_mkbold "Installing k0s $K0S_VERSION"
+  bold "Installing k0s $K0S_VERSION"
   curl -sSLf https://get.k0s.sh | sudo K0S_VERSION="$K0S_VERSION" sh
 fi
 
 # -------
 # Run k0s
 # -------
-tty_mkbold "Checking if there is existing k0s running"
+bold "Checking if there is existing k0s running"
 if sudo k0s status 2&> /dev/null; then
   k0s_role="$(k0s status | grep "Role" | awk -F': ' '{print $2}')"
   abort "ERROR: k0s is already running as $k0s_role.\nIf you want to reset the cluster, run 'sudo k0s stop && sudo k0s reset' before retrying the script."
 fi
 
-tty_mkbold "Running k0s as $K0S_ROLE"
+bold "Running k0s as $K0S_ROLE"
 k0s_config_path="/opt/vessl/k0s"
-tty_mkbold "Writing k0s cluster configuration to $k0s_config_path"
+bold "Writing k0s cluster configuration to $k0s_config_path"
 mkdir -p $k0s_config_path
 
 if [ "$K0S_ROLE" == "controller" ]; then
@@ -306,5 +293,5 @@ elif [ "$K0S_ROLE" == "worker" ]; then
     --kubelet-extra-args="--network-plugin=cni"
 fi
 
-tty_mkbold "Running k0s as $K0S_ROLE"
+bold "Running k0s as $K0S_ROLE"
 sudo k0s start

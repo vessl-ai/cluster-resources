@@ -5,8 +5,13 @@ if [ -n "${DEBUG}" ]; then
   set -x
 fi
 
-function bold() {
+bold() {
   echo -e "\e[1m$1\e[0m"
+}
+
+abort() {
+  printf "%s\n" "$@" >&2
+  exit 1
 }
 
 # Fail fast with a concise message when not using bash

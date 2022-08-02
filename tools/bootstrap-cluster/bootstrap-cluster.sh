@@ -263,7 +263,7 @@ unset test_container_ubuntu_version
 # Install k0s
 # -----------
 if ! _command_exists k0s; then
-  bold "Installing k0s $K0S_VERSION"
+  bold "k0s (portable Kubernetes runtime) does not exists. Installing k0s $K0S_VERSION"
   curl -sSLf https://get.k0s.sh | sudo K0S_VERSION="$K0S_VERSION" sh
 fi
 
@@ -301,3 +301,24 @@ fi
 
 bold "Running k0s as $K0S_ROLE"
 sudo k0s start
+
+bold "Waiting for k0s $K0S_ROLE to be ready"
+count=0
+until (systemctl status "k0s$K0S_ROLE" | grep -m1 'Active: active (running)') || [[ $count -eq 10 ]]; do
+  (( count++ ))
+  echo -e "...\c"
+  sleep 3
+done
+if [[ $count -eq 10 ]]; then
+  systemctl status "k0s$K0S_ROLE" --no-pager -l
+  abort "ERROR: k0s $K0S_ROLE failed to start. Please check error logs using 'journalctl -u k0s$K0S_ROLE.service'.\nIf the problem persists after retry, please reach out support@vessl.ai for technical support."
+fi
+
+if [ "$K0S_ROLE" == "controller" ]; then
+  k0s_token=$(sudo k0s token create --role=worker)
+  bold "-------------------\nBootstrap complete!\n-------------------\nRun following command on the worker node to join the cluster:\n$ bootstrap-cluster.sh --role worker --token $k0s_token"
+  unset k0s_token
+elif [ "$K0S_ROLE" == "worker" ]; then
+  bold "-------------------\nBootstrap complete!\n-------------------\n"
+fi
+

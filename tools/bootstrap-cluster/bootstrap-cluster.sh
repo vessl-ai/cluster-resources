@@ -308,6 +308,7 @@ bold "Running k0s as $K0S_ROLE"
 sudo k0s start
 
 bold "Waiting for k0s $K0S_ROLE to be ready"
+sleep 3
 count=0
 until (sudo systemctl status "k0s$K0S_ROLE" | grep -m1 'Active: active (running)') || [[ $count -eq 10 ]]; do
   (( count++ ))

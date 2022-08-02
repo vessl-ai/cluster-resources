@@ -257,7 +257,7 @@ if ! sudo docker run --gpus all "nvidia/cuda:$cuda_major_version.0-base-ubuntu$t
   abort "ERROR: nvidia-docker is not working correctly.\nIf the problem persists after retry, please reach out support@vessl.ai for technical support."
 fi
 unset cuda_major_version
-unser test_container_ubuntu_version
+unset test_container_ubuntu_version
 
 # -----------
 # Install k0s

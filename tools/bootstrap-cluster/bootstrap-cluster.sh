@@ -6,8 +6,7 @@ if [ -n "${DEBUG}" ]; then
 fi
 
 function bold() {
-  echo -e "\033[1m$1\033[0m$2"
-  tput sgr0
+  echo -e "\e[1m$1\e[0m"
 }
 
 # Fail fast with a concise message when not using bash

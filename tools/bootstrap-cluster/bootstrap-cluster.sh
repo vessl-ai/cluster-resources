@@ -304,13 +304,13 @@ sudo k0s start
 
 bold "Waiting for k0s $K0S_ROLE to be ready"
 count=0
-until (systemctl status "k0s$K0S_ROLE" | grep -m1 'Active: active (running)') || [[ $count -eq 10 ]]; do
+until (sudo systemctl status "k0s$K0S_ROLE" | grep -m1 'Active: active (running)') || [[ $count -eq 10 ]]; do
   (( count++ ))
   echo -e "...\c"
   sleep 3
 done
 if [[ $count -eq 10 ]]; then
-  systemctl status "k0s$K0S_ROLE" --no-pager -l
+  sudo systemctl status "k0s$K0S_ROLE" --no-pager -l
   abort "ERROR: k0s $K0S_ROLE failed to start. Please check error logs using 'journalctl -u k0s$K0S_ROLE.service'.\nIf the problem persists after retry, please reach out support@vessl.ai for technical support."
 fi
 

@@ -175,7 +175,7 @@ sudo systemctl --now enable docker
 if ! _command_exists nvidia-smi; then
   bold "NVIDIA Driver does not exists(Machine without GPU?), skipping nvidia-docker2 installation."
   bold "Please reach out to support@vessl.ai if you need technical support for non-NVIDIA accelerators."
-elif ! _command_exists nvidia-docker; then
+elif ! _command_exists nvidia-container-toolkit; then
   bold "NVIDIA Container Toolkit not found, Installing nvidia-docker2"
   os="$(_detect_os)"
   case "$os" in

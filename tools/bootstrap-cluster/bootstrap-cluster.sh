@@ -231,12 +231,9 @@ elif ! _command_exists nvidia-container-toolkit; then
       unset centos_major_version
       ;;
   esac
-else
-  bold "NVIDIA Driver and Container Toolkit already installed, skipping"
-fi
 
-bold "Updating Docker runtime to nvidia-container-runtime"
-cat <<-EOF | sudo tee /etc/docker/daemon.json
+  bold "Updating Docker runtime to nvidia-container-runtime"
+  cat <<-EOF | sudo tee /etc/docker/daemon.json
 {
     "default-runtime": "nvidia",
     "live-restore": true,
@@ -249,20 +246,24 @@ cat <<-EOF | sudo tee /etc/docker/daemon.json
 }
 EOF
 
-bold "Restarting Docker daemon"
-sudo systemctl restart docker
+  bold "Restarting Docker daemon"
+  sudo systemctl restart docker
 
-bold "Verifying nvidia-docker2 is working correctly"
-cuda_major_version="$(_cuda_version | cut -d '.' -f 1)"
-test_container_ubuntu_version="18.04"
-if [ "$cuda_major_version" == "9" ]; then
-  test_container_ubuntu_version="16.04"
+  bold "Verifying nvidia-docker2 is working correctly"
+  cuda_major_version="$(_cuda_version | cut -d '.' -f 1)"
+  test_container_ubuntu_version="18.04"
+  if [ "$cuda_major_version" == "9" ]; then
+    test_container_ubuntu_version="16.04"
+  fi
+  if ! sudo docker run --gpus all "nvidia/cuda:$cuda_major_version.0-base-ubuntu$test_container_ubuntu_version" nvidia-smi; then
+    abort "ERROR: nvidia-docker is not working correctly.\nIf the problem persists after retry, please reach out support@vessl.ai for technical support."
+  fi
+  unset cuda_major_version
+  unset test_container_ubuntu_version
+
+else
+  bold "NVIDIA Driver and Container Toolkit already installed, skipping"
 fi
-if ! sudo docker run --gpus all "nvidia/cuda:$cuda_major_version.0-base-ubuntu$test_container_ubuntu_version" nvidia-smi; then
-  abort "ERROR: nvidia-docker is not working correctly.\nIf the problem persists after retry, please reach out support@vessl.ai for technical support."
-fi
-unset cuda_major_version
-unset test_container_ubuntu_version
 
 # -----------
 # Install k0s

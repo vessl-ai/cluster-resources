@@ -277,11 +277,11 @@ fi
 # Run k0s
 # -------
 bold "Checking if there is existing k0s running"
-if sudo k0s status 2&> /dev/null; then
+k0s_executable="/usr/local/bin/k0s"
+if sudo $k0s_executable status 2&> /dev/null; then
   k0s_role="$(k0s status | grep "Role" | awk -F': ' '{print $2}')"
   abort "ERROR: k0s is already running as $k0s_role.\nIf you want to reset the cluster, run 'sudo k0s stop && sudo k0s reset' before retrying the script."
 fi
-export PATH="$PATH:/usr/local/bin"
 
 bold "Running k0s as $K0S_ROLE"
 k0s_config_path="/opt/vessl/k0s"
@@ -289,9 +289,9 @@ bold "Writing k0s cluster configuration to $k0s_config_path"
 sudo mkdir -p $k0s_config_path
 
 if [ "$K0S_ROLE" == "controller" ]; then
-  sudo k0s config create | sudo tee $k0s_config_path/k0s.yaml
+  sudo $k0s_executable config create | sudo tee $k0s_config_path/k0s.yaml
   sudo sed -i -e 's/provider: kuberouter/provider: calico/g' $k0s_config_path/k0s.yaml
-  sudo k0s install controller -c $k0s_config_path/k0s.yaml \
+  sudo $k0s_executable install controller -c $k0s_config_path/k0s.yaml \
     --enable-worker \
     --cri-socket=docker:unix:///var/run/docker.sock \
     --kubelet-extra-args="--network-plugin=cni"
@@ -300,14 +300,14 @@ elif [ "$K0S_ROLE" == "worker" ]; then
     abort "ERROR: cluster join token is not set.\nPlease set --token option to join the cluster."
   fi
   echo "$K0S_JOIN_TOKEN" | sudo tee $k0s_config_path/token
-  sudo k0s install worker \
+  sudo $k0s_executable install worker \
     --token-file $k0s_config_path/token \
     --cri-socket=docker:unix:///var/run/docker.sock \
     --kubelet-extra-args="--network-plugin=cni"
 fi
 
 bold "Running k0s as $K0S_ROLE"
-sudo k0s start
+sudo $k0s_executable start
 
 bold "Waiting for k0s $K0S_ROLE to be ready"
 sleep 3
@@ -323,7 +323,7 @@ if [[ $count -eq 10 ]]; then
 fi
 
 if [ "$K0S_ROLE" == "controller" ]; then
-  k0s_token=$(sudo k0s token create --role=worker)
+  k0s_token=$(sudo $k0s_executable token create --role=worker)
   bold "-------------------\nBootstrap complete!\n-------------------\n\nRun following command on the worker node to join the cluster:\n$ bootstrap-cluster.sh --role worker --token \"$k0s_token\"\n"
   unset k0s_token
 elif [ "$K0S_ROLE" == "worker" ]; then

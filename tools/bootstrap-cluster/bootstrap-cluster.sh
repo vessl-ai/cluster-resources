@@ -233,6 +233,7 @@ elif ! _command_exists nvidia-container-toolkit; then
   esac
 
   bold "Updating Docker runtime to nvidia-container-runtime"
+  sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.tmp
   cat <<-EOF | sudo tee /etc/docker/daemon.json
 {
     "default-runtime": "nvidia",

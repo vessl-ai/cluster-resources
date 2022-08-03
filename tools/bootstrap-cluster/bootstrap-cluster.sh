@@ -281,6 +281,7 @@ if sudo k0s status 2&> /dev/null; then
   k0s_role="$(k0s status | grep "Role" | awk -F': ' '{print $2}')"
   abort "ERROR: k0s is already running as $k0s_role.\nIf you want to reset the cluster, run 'sudo k0s stop && sudo k0s reset' before retrying the script."
 fi
+export PATH="$PATH:/usr/local/bin"
 
 bold "Running k0s as $K0S_ROLE"
 k0s_config_path="/opt/vessl/k0s"

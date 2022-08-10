@@ -178,7 +178,7 @@ sudo systemctl --now enable docker
 # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/arch-overview.html
 # ----------------------------------------------------------------------------------------------
 if ! _command_exists nvidia-smi; then
-  bold "NVIDIA Driver does not exists(Machine without GPU?), skipping nvidia-docker2 installation."
+  bold "NVIDIA Driver not found in the node (Node does not have GPU?), skipping nvidia-docker2 installation."
   bold "Please reach out to support@vessl.ai if you need technical support for non-NVIDIA accelerators."
 elif ! _command_exists nvidia-container-toolkit; then
   bold "NVIDIA Container Toolkit not found, Installing nvidia-docker2"
@@ -274,7 +274,7 @@ fi
 # Install k0s
 # -----------
 if ! _command_exists k0s; then
-  bold "k0s (portable Kubernetes runtime) does not exists. Installing k0s $K0S_VERSION"
+  bold "k0s (portable Kubernetes runtime) not found in the node. Installing k0s $K0S_VERSION"
   curl -sSLf https://get.k0s.sh | sudo K0S_VERSION="$K0S_VERSION" sh
 fi
 
@@ -327,17 +327,16 @@ if [[ $count -eq 10 ]]; then
   abort "ERROR: k0s $K0S_ROLE failed to start. Please check error logs using 'journalctl -u k0s$K0S_ROLE.service'.\nIf the problem persists after retry, please reach out support@vessl.ai for technical support."
 fi
 
+bold "-------------------\nBootstrap complete!\n-------------------\n"
 if [ "$K0S_ROLE" == "controller" ]; then
   k0s_token=$(sudo $k0s_executable token create --role=worker)
-  bold "-------------------\nBootstrap complete!\n-------------------"
   bold "Node is configured as a control plane node."
   bold "To join other nodes to the cluster, run the following command on the worker node:"
-  bold "  curl -sSLf https://install.dev.vssl.ai | sudo sh -c --role worker --token '$k0s_token'\n\n"
+  bold "  curl -sSLf https://install.dev.vssl.ai | sudo bash -s -- --role worker --token '$k0s_token'\n\n"
   bold "To get Kubernetes admin's kubeconfig file, run the following command on the control plane node:"
   bold "  /usr/local/bin/k0s kubeconfig admin"
   unset k0s_token
 elif [ "$K0S_ROLE" == "worker" ]; then
-  bold "-------------------\nBootstrap complete!\n-------------------\n\n"
-  bold "Node is configured as a worker node and joined the cluster."
+  bold "Node is configured as a worker node and joined the cluster.\n"
 fi
 

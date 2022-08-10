@@ -231,7 +231,11 @@ elif ! _command_exists nvidia-container-toolkit; then
       unset centos_major_version
       ;;
   esac
+else
+  bold "NVIDIA Driver and Container Toolkit already installed, skipping"
+fi
 
+if _command_exists nvidia-container-toolkit; then
   bold "Updating Docker runtime to nvidia-container-runtime"
   if [ -f /etc/docker/daemon.json ]; then
     bold "Found existing /etc/docker/daemon.json, backing up to /etc/docker/daemon.json.bak"
@@ -264,9 +268,6 @@ EOF
   fi
   unset cuda_major_version
   unset test_container_ubuntu_version
-
-else
-  bold "NVIDIA Driver and Container Toolkit already installed, skipping"
 fi
 
 # -----------
@@ -281,7 +282,7 @@ fi
 # Run k0s
 # -------
 bold "Checking if there is existing k0s running"
-k0s_executable="/usr/local/bin/k0s"
+k0s_executable="/usr/local/bin/k0s" # See https://get.k0s.sh/ to see where this is located (k0sInstallPath)
 if sudo $k0s_executable status 2&> /dev/null; then
   k0s_role="$(k0s status | grep "Role" | awk -F': ' '{print $2}')"
   abort "ERROR: k0s is already running as $k0s_role.\nIf you want to reset the cluster, run 'sudo k0s stop && sudo k0s reset' before retrying the script."
@@ -328,9 +329,15 @@ fi
 
 if [ "$K0S_ROLE" == "controller" ]; then
   k0s_token=$(sudo $k0s_executable token create --role=worker)
-  bold "-------------------\nBootstrap complete!\n-------------------\n\nRun following command on the worker node to join the cluster:\n$ bootstrap-cluster.sh --role worker --token \"$k0s_token\"\n"
+  bold "-------------------\nBootstrap complete!\n-------------------"
+  bold "Node is configured as a control plane node."
+  bold "To join other nodes to the cluster, run the following command on the worker node:"
+  bold "  curl -sSLf https://install.dev.vssl.ai | sudo sh -c --role worker --token '$k0s_token'\n\n"
+  bold "To get Kubernetes admin's kubeconfig file, run the following command on the control plane node:"
+  bold "  /usr/local/bin/k0s kubeconfig admin"
   unset k0s_token
 elif [ "$K0S_ROLE" == "worker" ]; then
   bold "-------------------\nBootstrap complete!\n-------------------\n\n"
+  bold "Node is configured as a worker node and joined the cluster."
 fi
 

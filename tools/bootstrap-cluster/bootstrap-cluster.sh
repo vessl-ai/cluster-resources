@@ -181,6 +181,10 @@ if ! _command_exists nvidia-smi; then
   bold "NVIDIA Driver not found in the node (Node does not have GPU?), skipping nvidia-docker2 installation."
   bold "Please reach out to support@vessl.ai if you need technical support for non-NVIDIA accelerators."
 elif ! _command_exists nvidia-container-toolkit; then
+  if ! _command_exists nvcc; then
+    bold "NVIDIA Driver exists in the node, but nvcc not found - installing nvidia-cuda-toolkit"
+    sudo apt-get install -y nvidia-cuda-toolkit
+  fi
   bold "NVIDIA Container Toolkit not found, Installing nvidia-docker2"
   os="$(_detect_os)"
   case "$os" in

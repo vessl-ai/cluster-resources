@@ -180,65 +180,66 @@ sudo systemctl --now enable docker
 if ! _command_exists nvidia-smi; then
   bold "NVIDIA Driver not found in the node (Node does not have GPU?), skipping nvidia-docker2 installation."
   bold "Please reach out to support@vessl.ai if you need technical support for non-NVIDIA accelerators."
-elif ! _command_exists nvidia-container-toolkit; then
+else
   if ! _command_exists nvcc; then
-    bold "NVIDIA Driver exists in the node, but nvcc not found - installing nvidia-cuda-toolkit"
+    bold "NVIDIA Driver exists in the node but nvcc not found - installing nvidia-cuda-toolkit"
     sudo apt-get install -y nvidia-cuda-toolkit
   fi
-  bold "NVIDIA Container Toolkit not found, Installing nvidia-docker2"
-  os="$(_detect_os)"
-  case "$os" in
-    ubuntu)
-      if [ -n "$(find /etc/apt/sources.list.d -name '*nvidia*' | head -1)" ]; then
-        bold "Moving existing nvidia-docker source repository targets to /tmp/apt-sources-nvidia-docker"
-        sudo mkdir -p /tmp/apt-sources-nvidia-docker
-        sudo mv -v /etc/apt/sources.list.d/*nvidia* /tmp/apt-sources-nvidia-docker
-      fi
+  if ! _command_exists nvidia-container-toolkit; then
+    bold "NVIDIA Driver exists in the node but NVIDIA Container Toolkit not found - Installing nvidia-docker2"
+    os="$(_detect_os)"
+    case "$os" in
+      ubuntu)
+        if [ -n "$(find /etc/apt/sources.list.d -name '*nvidia*' | head -1)" ]; then
+          bold "Moving existing nvidia-docker source repository targets to /tmp/apt-sources-nvidia-docker"
+          sudo mkdir -p /tmp/apt-sources-nvidia-docker
+          sudo mv -v /etc/apt/sources.list.d/*nvidia* /tmp/apt-sources-nvidia-docker
+        fi
 
-      bold "Setting up nvidia-container-toolkit repository and GPG key"
-      # shellcheck source=/dev/null
-      distribution=$(. /etc/os-release; echo "$ID""$VERSION_ID" | tr "[:upper:]" "[:lower:]")
-      curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-      curl -sL https://nvidia.github.io/libnvidia-container/"$distribution"/libnvidia-container.list | \
-        sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-        sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+        bold "Setting up nvidia-container-toolkit repository and GPG key"
+        # shellcheck source=/dev/null
+        distribution=$(. /etc/os-release; echo "$ID""$VERSION_ID" | tr "[:upper:]" "[:lower:]")
+        curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+        curl -sL https://nvidia.github.io/libnvidia-container/"$distribution"/libnvidia-container.list | \
+          sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+          sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
-      bold "Updating public keys for nvidia-container-toolkit repositories"
-      # GPG keys for nvidia-container-toolkit repositories: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation-network
-      # GPG keys for DGX machines https://docs.nvidia.com/dgx/dgx-os-release-notes/index.html#rotating-gpg-keys
-      sudo apt-key del 7fa2af80
-      nvidia_keyring_path=$(mktemp)
-      curl -fsSL "https://developer.download.nvidia.com/compute/cuda/repos/${distribution//.}/$(uname -m)/cuda-keyring_1.0-1_all.deb" -o "${nvidia_keyring_path}"
-      sudo dpkg --force-confold -i "${nvidia_keyring_path}"
-      sudo rm -f "${nvidia_keyring_path}"
-      unset nvidia_keyring_path
-      sudo apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/${distribution//.}/$(uname -m)/3bf863cc.pub"
-      sudo apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/machine-learning/repos/${distribution//.}/$(uname -m)/7fa2af80.pub"
-      sudo apt-get update
+        bold "Updating public keys for nvidia-container-toolkit repositories"
+        # GPG keys for nvidia-container-toolkit repositories: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation-network
+        # GPG keys for DGX machines https://docs.nvidia.com/dgx/dgx-os-release-notes/index.html#rotating-gpg-keys
+        sudo apt-key del 7fa2af80
+        nvidia_keyring_path=$(mktemp)
+        curl -fsSL "https://developer.download.nvidia.com/compute/cuda/repos/${distribution//.}/$(uname -m)/cuda-keyring_1.0-1_all.deb" -o "${nvidia_keyring_path}"
+        sudo dpkg --force-confold -i "${nvidia_keyring_path}"
+        sudo rm -f "${nvidia_keyring_path}"
+        unset nvidia_keyring_path
+        sudo apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/${distribution//.}/$(uname -m)/3bf863cc.pub"
+        sudo apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/machine-learning/repos/${distribution//.}/$(uname -m)/7fa2af80.pub"
+        sudo apt-get update
 
-      bold "Installing nvidia-docker"
-      sudo apt-get install -y nvidia-docker2
-      ;;
-    centos)
-      bold "Setting up nvidia-container-toolkit repository and GPG key"
-      # shellcheck source=/dev/null
-      distribution=$(. /etc/os-release; echo "$ID$VERSION_ID") \
-        && curl -s -L https://nvidia.github.io/libnvidia-container/"$distribution"/libnvidia-container.repo | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
+        bold "Installing nvidia-docker"
+        sudo apt-get install -y nvidia-docker2
+        ;;
+      centos)
+        bold "Setting up nvidia-container-toolkit repository and GPG key"
+        # shellcheck source=/dev/null
+        distribution=$(. /etc/os-release; echo "$ID$VERSION_ID") \
+          && curl -s -L https://nvidia.github.io/libnvidia-container/"$distribution"/libnvidia-container.repo | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
 
-      bold "Installing nvidia-docker"
-      centos_major_version="$(< /etc/centos-release tr -dc '0-9)')"
-      if [ "$centos_major_version" == "7" ]; then
-        sudo yum clean expire-cache
-        sudo yum install -y nvidia-docker2
-      else
-        sudo dnf clean expire-cache --refresh
-        sudo dnf install -y nvidia-docker2
-      fi
-      unset centos_major_version
-      ;;
-  esac
-else
-  bold "NVIDIA Driver and Container Toolkit already installed, skipping"
+        bold "Installing nvidia-docker"
+        centos_major_version="$(< /etc/centos-release tr -dc '0-9)')"
+        if [ "$centos_major_version" == "7" ]; then
+          sudo yum clean expire-cache
+          sudo yum install -y nvidia-docker2
+        else
+          sudo dnf clean expire-cache --refresh
+          sudo dnf install -y nvidia-docker2
+        fi
+        unset centos_major_version
+        ;;
+    esac
+  fi
+  bold "NVIDIA Driver, CUDA toolkit and Container Toolkit has installed"
 fi
 
 if _command_exists nvidia-container-toolkit; then

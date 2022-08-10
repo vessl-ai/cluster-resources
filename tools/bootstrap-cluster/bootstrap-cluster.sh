@@ -205,7 +205,7 @@ elif ! _command_exists nvidia-container-toolkit; then
       sudo apt-key del 7fa2af80
       nvidia_keyring_path=$(mktemp)
       curl -fsSL "https://developer.download.nvidia.com/compute/cuda/repos/${distribution//.}/$(uname -m)/cuda-keyring_1.0-1_all.deb" -o "${nvidia_keyring_path}"
-      yes | sudo dpkg -i "${nvidia_keyring_path}"
+      sudo dpkg --force-confold -i "${nvidia_keyring_path}"
       sudo rm -f "${nvidia_keyring_path}"
       unset nvidia_keyring_path
       sudo apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/${distribution//.}/$(uname -m)/3bf863cc.pub"

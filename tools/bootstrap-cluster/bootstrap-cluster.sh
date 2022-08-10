@@ -265,8 +265,9 @@ EOF
   if [ "$cuda_major_version" == "9" ]; then
     test_container_ubuntu_version="16.04"
   fi
+  bold "Running CUDA container: nvidia/cuda:$cuda_major_version.0-base-ubuntu$test_container_ubuntu_version"
   if ! sudo docker run --gpus all "nvidia/cuda:$cuda_major_version.0-base-ubuntu$test_container_ubuntu_version" nvidia-smi; then
-    abort "ERROR: nvidia-docker is not working correctly.\nIf the problem persists after retry, please reach out support@vessl.ai for technical support."
+    abort "ERROR: nvidia-docker is not working correctly. If the problem persists after retry, please reach out support@vessl.ai for technical support."
   fi
   unset cuda_major_version
   unset test_container_ubuntu_version

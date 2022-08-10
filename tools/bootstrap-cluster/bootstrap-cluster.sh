@@ -185,9 +185,11 @@ elif ! _command_exists nvidia-container-toolkit; then
   os="$(_detect_os)"
   case "$os" in
     ubuntu)
-      bold "Moving existing nvidia-docker source repository targets to /tmp/apt-sources-nvidia-docker"
-      sudo mkdir -p /tmp/apt-sources-nvidia-docker
-      sudo mv -v /etc/apt/sources.list.d/*nvidia* /tmp/apt-sources-nvidia-docker
+      if [ -n "$(find /etc/apt/sources.list.d -name '*nvidia*' | head -1)" ]; then
+        bold "Moving existing nvidia-docker source repository targets to /tmp/apt-sources-nvidia-docker"
+        sudo mkdir -p /tmp/apt-sources-nvidia-docker
+        sudo mv -v /etc/apt/sources.list.d/*nvidia* /tmp/apt-sources-nvidia-docker
+      fi
 
       bold "Setting up nvidia-container-toolkit repository and GPG key"
       # shellcheck source=/dev/null

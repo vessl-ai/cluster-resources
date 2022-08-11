@@ -30,17 +30,19 @@ set -u
 
 SUPPORTED_LINUX_OS_DIST="Ubuntu 16.04+, Centos 7.9+"
 K0S_VERSION="v1.23.8+k0s.0"
-K0S_ROLE="controller"
+K0S_ROLE=""
 K0S_JOIN_TOKEN=""
+K0S_TAINT_CONTROLLER="false"
 
 print_help() {
   echo "usage: $0 [options]"
   echo "Bootstraps a node into an k8s cluster connectable to VESSL"
   echo ""
-  echo "-h,--help print this help"
-  echo "--role    node's role in the cluster (controller or worker)"
-  echo "--token   token to join k0s cluster - necessary when --role=worker."
-  echo "          run 'sudo k0s token create --role worker' from a controller node to get one"
+  echo "-h,--help           print this help"
+  echo "--role=[ROLE]       node's role in the cluster (controller or worker)"
+  echo "--taint-controller  Use control plane nodes only dedicated to node management"
+  echo "                    In default, control plane nodes are also used for running workloads"
+  echo "--token=[TOKEN]     token to join k0s cluster; necessary when --role=worker."
 }
 
 while [[ $# -gt 0 ]]; do
@@ -50,30 +52,40 @@ while [[ $# -gt 0 ]]; do
       print_help
       exit 1
       ;;
-    --role)
-      K0S_ROLE="$2"
-      if [ "$K0S_ROLE" != "controller" ] && [ "$K0S_ROLE" != "worker" ]; then
-        abort "ERROR: --role must be either 'controller' or 'worker'"
-      fi
-      shift
+    --role*)
+      K0S_ROLE="${1#*=}"
       shift
       ;;
-    --token)
-      K0S_JOIN_TOKEN="$2"
-      shift
+    --taint-controller)
+      K0S_TAINT_CONTROLLER="true"
       shift
       ;;
-    --meow)
-      echo "meow"
-      exit 2
+    --token*)
+      K0S_JOIN_TOKEN="${1#*=}"
+      shift
       ;;
     *)
-      # unknown option, save it in an array for later
-      POSITIONAL+=("$1")
-      shift # past argument
+      printf "ERROR: unknown option: %s\n" "$1"
+      print_help
+      exit 1
       ;;
   esac
 done
+
+# Validate arguments
+if [ "$K0S_ROLE" != "controller" ] && [ "$K0S_ROLE" != "worker" ]; then
+  printf "ERROR: unexpected role: %s\n\n" "$K0S_ROLE"
+  print_help
+  exit 1
+fi
+
+if [ "$K0S_ROLE" == "worker" ] && [ -z "$K0S_JOIN_TOKEN" ]; then
+  printf "ERROR: missing join token for worker\n"
+  printf "Run following command on the controller node to get one:\n"
+  printf "  /usr/local/bin/k0s token create --role=worker\n\n"
+  print_help
+  exit 1
+fi
 
 # ----------------
 # Helper functions
@@ -322,7 +334,7 @@ fi
 bold "Running k0s as $K0S_ROLE"
 sudo $k0s_executable start
 
-bold "Waiting for k0s $K0S_ROLE to be ready"
+bold "Waiting for k0s $K0S_ROLE to be up and running"
 sleep 3
 count=0
 until sudo systemctl is-active --quiet "k0s$K0S_ROLE" || [[ $count -eq 10 ]]; do
@@ -332,7 +344,39 @@ until sudo systemctl is-active --quiet "k0s$K0S_ROLE" || [[ $count -eq 10 ]]; do
 done
 if [[ $count -eq 10 ]]; then
   sudo systemctl status "k0s$K0S_ROLE" --no-pager -l
-  abort "ERROR: k0s $K0S_ROLE failed to start. Please check error logs using 'journalctl -u k0s$K0S_ROLE.service'.\nIf the problem persists after retry, please reach out support@vessl.ai for technical support."
+  bold "ERROR: k0s $K0S_ROLE failed to start. Please check error logs using 'journalctl -u k0s$K0S_ROLE.service'."
+  bold "If the problem persists after retry, please reach out support@vessl.ai for technical support."
+  abort ""
+fi
+
+if [ "$K0S_ROLE" == "controller" ]; then
+  bold "Waiting for control plane node to be ready"
+
+  jsonpath='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}';
+  control_plane_label='node-role.kubernetes.io/control-plane'
+
+  count=0
+  until sudo $k0s_executable kubectl get nodes --selector=$control_plane_label -o jsonpath="$jsonpath" 2>&1 | grep -q "Ready=True" || [[ $count -eq 10 ]]; do
+    (( count++ ))
+    echo -e "...\c"
+    sleep 3
+  done
+  if [[ $count -eq 10 ]]; then
+    echo ""
+    sudo $k0s_executable kubectl get nodes -l 'node-role.kubernetes.io/control-plane'
+    echo ""
+    bold "ERROR: control plane node is not ready after 30 seconds. Please check error logs using 'journalctl -u k0s$K0S_ROLE.service'."
+    bold "If the problem persists after retry, please reach out support@vessl.ai for technical support."
+    abort ""
+  fi
+
+  if [ "$K0S_TAINT_CONTROLLER" == "false" ]; then
+    bold "Untainting control plane node (workloads can be scheduled to control plane node)"
+    sudo $k0s_executable kubectl taint nodes --selector=$control_plane_label node-role.kubernetes.io/control-plane:NoSchedule- || true
+  fi
+
+  unset jsonpath
+  unset control_plane_label
 fi
 
 bold "-------------------\nBootstrap complete!\n-------------------\n"

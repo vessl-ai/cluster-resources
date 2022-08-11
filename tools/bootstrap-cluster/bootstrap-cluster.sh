@@ -369,12 +369,14 @@ if [ "$K0S_ROLE" == "controller" ]; then
     bold "If the problem persists after retry, please reach out support@vessl.ai for technical support."
     abort ""
   fi
-  unset jsonpath
 
   if [ "$K0S_TAINT_CONTROLLER" == "false" ]; then
     bold "Untainting control plane node (workloads can be scheduled to control plane node)"
-    sudo $k0s_executable kubectl taint nodes --selector=$control_plane_label node-role.kubernetes.io/control-plane:NoSchedule || true
+    sudo $k0s_executable kubectl taint nodes --selector=$control_plane_label node-role.kubernetes.io/control-plane:NoSchedule- || true
   fi
+
+  unset jsonpath
+  unset control_plane_label
 fi
 
 bold "-------------------\nBootstrap complete!\n-------------------\n"

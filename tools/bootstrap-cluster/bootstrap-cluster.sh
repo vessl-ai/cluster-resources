@@ -30,17 +30,17 @@ set -u
 
 SUPPORTED_LINUX_OS_DIST="Ubuntu 16.04+, Centos 7.9+"
 K0S_VERSION="v1.23.8+k0s.0"
-K0S_ROLE="controller"
+K0S_ROLE=""
 K0S_JOIN_TOKEN=""
 
 print_help() {
   echo "usage: $0 [options]"
   echo "Bootstraps a node into an k8s cluster connectable to VESSL"
   echo ""
-  echo "-h,--help print this help"
-  echo "--role    node's role in the cluster (controller or worker)"
-  echo "--token   token to join k0s cluster - necessary when --role=worker."
-  echo "          run 'sudo k0s token create --role worker' from a controller node to get one"
+  echo "-h,--help        print this help"
+  echo "--role=[ROLE]    node's role in the cluster (controller or worker)"
+  echo "--token=[TOKEN]  token to join k0s cluster; necessary when --role=worker."
+  echo "                 run 'sudo k0s token create --role worker' from a controller node to get one"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -50,30 +50,36 @@ while [[ $# -gt 0 ]]; do
       print_help
       exit 1
       ;;
-    --role)
-      K0S_ROLE="$2"
-      if [ "$K0S_ROLE" != "controller" ] && [ "$K0S_ROLE" != "worker" ]; then
-        abort "ERROR: --role must be either 'controller' or 'worker'"
-      fi
-      shift
+    --role*)
+      K0S_ROLE="${1#*=}"
       shift
       ;;
-    --token)
-      K0S_JOIN_TOKEN="$2"
+    --token*)
+      K0S_JOIN_TOKEN="${1#*=}"
       shift
-      shift
-      ;;
-    --meow)
-      echo "meow"
-      exit 2
       ;;
     *)
-      # unknown option, save it in an array for later
-      POSITIONAL+=("$1")
-      shift # past argument
+      printf "ERROR: unknown option: %s\n" "$1"
+      print_help
+      exit 1
       ;;
   esac
 done
+
+# Validate arguments
+if [ "$K0S_ROLE" != "controller" ] && [ "$K0S_ROLE" != "worker" ]; then
+  printf "ERROR: unexpected role: %s\n\n" "$K0S_ROLE"
+  print_help
+  exit 1
+fi
+
+if [ "$K0S_ROLE" == "worker" ] && [ -z "$K0S_JOIN_TOKEN" ]; then
+  printf "ERROR: missing join token for worker\n"
+  printf "Run following command on the controller node to get one:\n"
+  printf "  /usr/local/bin/k0s token create --role=worker\n\n"
+  print_help
+  exit 1
+fi
 
 # ----------------
 # Helper functions

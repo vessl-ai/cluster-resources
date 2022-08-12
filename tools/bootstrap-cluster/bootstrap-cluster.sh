@@ -379,6 +379,7 @@ if [ "$K0S_ROLE" == "controller" ]; then
   if [ "$K0S_TAINT_CONTROLLER" == "false" ]; then
     bold "Untainting control plane node (workloads can be scheduled to control plane node)"
     sudo $k0s_executable kubectl taint nodes --selector=$control_plane_label node-role.kubernetes.io/control-plane:NoSchedule- || true
+    sudo $k0s_executable kubectl taint nodes --selector=$control_plane_label node-role.kubernetes.io/master:NoSchedule- || true
   fi
 
   unset jsonpath

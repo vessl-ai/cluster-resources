@@ -353,6 +353,9 @@ if [[ $count -eq 10 ]]; then
 fi
 
 if [ "$K0S_ROLE" == "controller" ]; then
+  bold "Granting access to admin kubeconfig to current user"
+  sudo chmod +r /var/lib/k0s/pki/admin.conf
+
   bold "Waiting for control plane node to be ready"
 
   jsonpath='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}';
@@ -388,7 +391,7 @@ fi
 
 if [ "$K0S_ROLE" == "controller" ] && ! _command_exists helm; then
   bold "Helm not found in the node. Installing Helm"
-  curl -sSLf https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sh
+  curl -sSLf https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 fi
 
 bold "-------------------\nBootstrap complete!\n-------------------\n"

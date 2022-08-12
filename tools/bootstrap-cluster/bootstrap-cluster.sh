@@ -334,6 +334,9 @@ fi
 bold "Running k0s as $K0S_ROLE"
 sudo $k0s_executable start
 
+# ------------------
+# Verify k0s working
+# ------------------
 bold "Waiting for k0s $K0S_ROLE to be up and running"
 sleep 3
 count=0
@@ -377,6 +380,15 @@ if [ "$K0S_ROLE" == "controller" ]; then
 
   unset jsonpath
   unset control_plane_label
+fi
+
+# ------------
+# Install Helm
+# ------------
+
+if [ "$K0S_ROLE" == "controller" ] && ! _command_exists helm; then
+  bold "Helm not found in the node. Installing Helm"
+  curl -sSLf https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sh
 fi
 
 bold "-------------------\nBootstrap complete!\n-------------------\n"

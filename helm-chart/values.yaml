@@ -1,5 +1,6 @@
 agent:
   accessToken:
+  clusterName:
   ingressEndpoint:
   providerType: on-premise
   localStorageClassName:

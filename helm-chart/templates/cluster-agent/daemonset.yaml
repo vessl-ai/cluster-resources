@@ -29,6 +29,10 @@ spec:
                   fieldPath: spec.nodeName
             - name: VESSL_ENV
               value: "{{ .Values.agent.env }}"
+            {{- if .Values.agent.clusterName }}
+            - name: VESSL_CLUSTER_NAME
+              value: "{{ .Values.agent.clusterName }}"
+            {{- end }}
             - name: VESSL_API_URL
               value: "{{ .Values.agent.apiServer }}"
             - name: VESSL_LOG_LEVEL

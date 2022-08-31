@@ -1,3 +1,7 @@
 apiVersion: v2
 name: cluster-resources
-version: 0.1.20
+version: 0.1.21-rc1
+dependencies:
+- name: kube-prometheus-stack
+  version: "39.10.0"
+  repository: https://prometheus-community.github.io/helm-charts

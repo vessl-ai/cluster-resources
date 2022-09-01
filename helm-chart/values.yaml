@@ -1,7 +1,9 @@
 agent:
+  customImageSource:
   accessToken:
   clusterName:
   ingressEndpoint:
+  imagePullPolicy: IfNotPresent
   providerType: on-premise
   localStorageClassName:
   apiServer: https://api.vessl.ai
@@ -42,7 +44,7 @@ tolerations:
 
 harbor:
   enabled: false
-  mirrorSourceType: quay # one of quay, vessl-harbor
+  mirrorSourceType: quay # must be quay
   nodeSelector: {}
   harborAdminPassword: Harbor12345
   registryPassword: changeme
@@ -76,5 +78,5 @@ kube-prometheus-stack:
     enabled: false
   prometheus:
     podDisruptionBudget:
-      enabeld: true
+      enabled: true
       minAvailable: 1

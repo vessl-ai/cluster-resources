@@ -19,8 +19,12 @@ spec:
 {{ toYaml .Values.tolerations | indent 8 }}
       containers:
         - name: vessl-agent
+{{ if .Values.agent.customImageSource }}
+          image: {{ .Values.agent.customImageSource }}
+{{ else }}
           image: {{ template "vessl.image.source" . -}}/cluster-agent:{{- .Values.agent.imageVersion }}
-          imagePullPolicy: IfNotPresent
+{{ end }}
+          imagePullPolicy: {{ .Values.agent.imagePullPolicy }}
           env:
             - name: NODE_NAME
               valueFrom:

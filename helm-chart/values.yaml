@@ -34,7 +34,7 @@ metricsExporters:
     imageVersion: "2.0.13-2.1.1-ubuntu18.04"
     useDeviceName:
   kubeStateMetrics:
-    imageVersion: v1.9.7
+    imageVersion: v2.3.0
   nodeExporter:
     imageVersion: v1.1.2
 

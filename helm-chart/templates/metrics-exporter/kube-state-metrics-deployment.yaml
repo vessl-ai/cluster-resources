@@ -13,28 +13,6 @@ spec:
       labels:
         name: kube-state-metrics
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                - key: kubernetes.io/os
-                  operator: In
-                  values:
-                  - linux
-                - key: kubernetes.io/arch
-                  operator: In
-                  values:
-                  - amd64
-              - matchExpressions:
-                - key: beta.kubernetes.io/os
-                  operator: In
-                  values:
-                  - linux
-                - key: beta.kubernetes.io/arch
-                  operator: In
-                  values:
-                  - amd64
       serviceAccountName: vessl-kube-state-metrics
       tolerations:
 {{ toYaml .Values.tolerations | indent 8 }}

@@ -51,7 +51,12 @@ harbor:
   databasePassword: changeme2
   clusterIP: # @XXX: consult with vessl team if you are going to use client-side harbor
 
+prometheus:
+  remoteWriteURL: https://remote-write-gateway.vessl.ai/remote-write
+
 kube-prometheus-stack:
+  prometheusOperator:
+    enabled: true # if you already have prometheus-operator, set this false
   defaultRules:
     create: false
   alertmanager:
@@ -77,6 +82,4 @@ kube-prometheus-stack:
   nodeExporter:
     enabled: false
   prometheus:
-    podDisruptionBudget:
-      enabled: true
-      minAvailable: 1
+    enabled: false

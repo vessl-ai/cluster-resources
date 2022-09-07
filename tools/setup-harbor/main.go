@@ -118,5 +118,4 @@ func main() {
 	}
 	addRegistry("quay", "quay", "https://quay.io", "quay.io")
 	addRegistry("docker-hub", "dockerhub", "https://hub.docker.com", "dockerhub")
-	addRegistry("harbor", "vessl-harbor", "https://harbor.vessl.ai", "harbor.vessl.ai")
 }

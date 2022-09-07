@@ -50,7 +50,7 @@ spec:
   
   additionalScrapeConfigs:
     name: vessl-prometheus-scrape-config
-    key: cadvisor.yaml
+    key: additional-scrape-config.yaml
 
   probeNamespaceSelector: {}
   securityContext:

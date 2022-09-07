@@ -25,7 +25,9 @@ spec:
       url: {{ .Values.prometheus.remoteWriteURL }}
       authorization:
         type: Token
-        credentials: {{ .Values.agent.accessToken }}
+        credentials:
+          name: vessl-agent
+          key: access-token
       writeRelabelConfigs:
         - action: labeldrop
           regex: feature_node_kubernetes_io_(.+)

@@ -26,7 +26,7 @@ spec:
       authorization:
         type: Token
         credentials: {{ .Values.agent.accessToken }}
-      write_relabel_configs:
+      writeRelabelConfigs:
         - action: labeldrop
           regex: feature_node_kubernetes_io_(.+)
         - action: labeldrop

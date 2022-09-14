@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: vessl-node-agent
+spec:
+  selector:
+    matchLabels:
+      name: vessl-node-agent
+  template:
+    metadata:
+      labels:
+        name: vessl-node-agent
+        v1.k8s.savvihub.com/logs-enabled: 'true'
+        v1.k8s.savvihub.com/type: agent
+        v1.k8s.vessl.ai/logs-enabled: 'true'
+        v1.k8s.vessl.ai/type: agent
+    spec:
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+      containers:
+        - name: vessl-node-agent
+{{ if .Values.agent.customImageSource }}
+          image: {{ .Values.agent.customImageSource }}
+{{ else }}
+          image: {{ template "vessl.image.source" . -}}/cluster-agent:{{- .Values.agent.imageVersion }}
+{{ end }}
+          imagePullPolicy: {{ .Values.agent.imagePullPolicy }}
+          args:
+            - "node"
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+            - name: VESSL_ENV
+              value: "{{ .Values.agent.env }}"
+            {{- if .Values.agent.clusterName }}
+            - name: VESSL_CLUSTER_NAME
+              value: "{{ .Values.agent.clusterName }}"
+            {{- end }}
+            - name: VESSL_API_URL
+              value: "{{ .Values.agent.apiServer }}"
+            - name: VESSL_LOG_LEVEL
+              value: "{{ .Values.agent.logLevel }}"
+            - name: VESSL_SENTRY_DSN
+              value: "{{ .Values.agent.sentryDsn }}"
+            - name: VESSL_HELM_RELEASE_NAME
+              value: "{{ .Release.Name }}"
+            - name: VESSL_KUBERNETES_INGRESS_ENDPOINT
+              value: "{{ .Values.agent.ingressEndpoint }}"
+            - name: VESSL_PROVIDER_TYPE
+              value: "{{ .Values.agent.providerType }}"
+            - name: VESSL_LOCAL_STORAGE_CLASS_NAME
+              {{- if .Values.agent.localStorageClassName }}
+              value: "{{ .Values.agent.localStorageClassName }}"
+              {{- else }}
+              value: "vessl-local-path-{{ .Release.Namespace }}"
+              {{- end }}
+            - name: VESSL_CONTAINER_LOG_FORMAT
+              value: "{{ .Values.agent.containerLogFormat }}"
+          volumeMounts:
+            - name: varlog
+              mountPath: /var/log
+              readOnly: true
+            - name: logcontainerpath
+              readOnly: true
+              mountPath: {{ .Values.agent.containerLogPath }}
+            - name: access-token
+              readOnly: true
+              mountPath: /secrets
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: varlog
+          hostPath:
+            path: /var/log
+        - name: logcontainerpath
+          hostPath:
+            path: {{ .Values.agent.containerLogPath }}
+        - name: access-token
+          secret:
+            secretName: vessl-agent
+      serviceAccountName: vessl

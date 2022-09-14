@@ -358,7 +358,7 @@ if [ "$K0S_ROLE" == "controller" ]; then
 
   bold "Waiting for control plane node to be ready"
 
-  jsonpath='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}';
+  jsonpath='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
   control_plane_label='node-role.kubernetes.io/control-plane'
 
   count=0

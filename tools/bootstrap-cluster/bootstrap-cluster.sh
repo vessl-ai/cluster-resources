@@ -358,10 +358,11 @@ if [ "$K0S_ROLE" == "controller" ]; then
 
   bold "Waiting for control plane node to be ready"
 
-  jsonpath='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
-  control_plane_label='node-role.kubernetes.io/control-plane'
-
+  sleep 3
   count=0
+  jsonpath='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
+  control_plane_label='node-role.kubernetes.io/master'
+
   until sudo $k0s_executable kubectl get nodes --selector=$control_plane_label -o jsonpath="$jsonpath" | grep -q "Ready=True" || [[ $count -eq 10 ]]; do
     (( count++ ))
     echo -e "...\c"
@@ -369,7 +370,7 @@ if [ "$K0S_ROLE" == "controller" ]; then
   done
   if [[ $count -eq 10 ]]; then
     echo ""
-    sudo $k0s_executable kubectl get nodes -l 'node-role.kubernetes.io/control-plane'
+    sudo $k0s_executable kubectl get nodes
     echo ""
     bold "ERROR: control plane node is not ready after 30 seconds. Please check error logs using 'journalctl -u k0s$K0S_ROLE.service'."
     bold "If the problem persists after retry, please reach out support@vessl.ai for technical support."
@@ -378,8 +379,7 @@ if [ "$K0S_ROLE" == "controller" ]; then
 
   if [ "$K0S_TAINT_CONTROLLER" == "false" ]; then
     bold "Untainting control plane node (workloads can be scheduled to control plane node)"
-    sudo $k0s_executable kubectl taint nodes --selector=$control_plane_label node-role.kubernetes.io/control-plane:NoSchedule- || true
-    sudo $k0s_executable kubectl taint nodes --selector=$control_plane_label node-role.kubernetes.io/master:NoSchedule- || true
+    sudo $k0s_executable kubectl taint nodes --selector=$control_plane_label $control_plane_label:NoSchedule- || true
   fi
 
   unset jsonpath

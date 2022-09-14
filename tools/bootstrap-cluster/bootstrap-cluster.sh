@@ -358,10 +358,11 @@ if [ "$K0S_ROLE" == "controller" ]; then
 
   bold "Waiting for control plane node to be ready"
 
+  sleep 3
+  count=0
   jsonpath='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
   control_plane_label='node-role.kubernetes.io/control-plane'
 
-  count=0
   until sudo $k0s_executable kubectl get nodes --selector=$control_plane_label -o jsonpath="$jsonpath" | grep -q "Ready=True" || [[ $count -eq 10 ]]; do
     (( count++ ))
     echo -e "...\c"

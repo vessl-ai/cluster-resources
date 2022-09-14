@@ -314,10 +314,13 @@ bold "Writing k0s cluster configuration to $k0s_config_path"
 sudo mkdir -p $k0s_config_path
 
 if [ "$K0S_ROLE" == "controller" ]; then
+  no_taint_option=""
+  [[ "$K0S_TAINT_CONTROLLER" == "false" ]] && no_taint_option="--no-taints"
   sudo $k0s_executable config create | sudo tee $k0s_config_path/k0s.yaml
   sudo sed -i -e 's/provider: kuberouter/provider: calico/g' $k0s_config_path/k0s.yaml
+
   sudo $k0s_executable install controller -c $k0s_config_path/k0s.yaml \
-    --enable-worker \
+    --enable-worker ${no_taint_option:+"--no-taints"} \
     --cri-socket=docker:unix:///var/run/docker.sock \
     --kubelet-extra-args="--network-plugin=cni"
 elif [ "$K0S_ROLE" == "worker" ]; then
@@ -355,35 +358,6 @@ fi
 if [ "$K0S_ROLE" == "controller" ]; then
   bold "Granting access to admin kubeconfig to current user"
   sudo chmod +r /var/lib/k0s/pki/admin.conf
-
-  bold "Waiting for control plane node to be ready"
-
-  sleep 3
-  count=0
-  jsonpath='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
-  control_plane_label='node-role.kubernetes.io/master'
-
-  until sudo $k0s_executable kubectl get nodes --selector=$control_plane_label -o jsonpath="$jsonpath" | grep -q "Ready=True" || [[ $count -eq 10 ]]; do
-    (( count++ ))
-    echo -e "...\c"
-    sleep 3
-  done
-  if [[ $count -eq 10 ]]; then
-    echo ""
-    sudo $k0s_executable kubectl get nodes
-    echo ""
-    bold "ERROR: control plane node is not ready after 30 seconds. Please check error logs using 'journalctl -u k0s$K0S_ROLE.service'."
-    bold "If the problem persists after retry, please reach out support@vessl.ai for technical support."
-    abort ""
-  fi
-
-  if [ "$K0S_TAINT_CONTROLLER" == "false" ]; then
-    bold "Untainting control plane node (workloads can be scheduled to control plane node)"
-    sudo $k0s_executable kubectl taint nodes --selector=$control_plane_label $control_plane_label:NoSchedule- || true
-  fi
-
-  unset jsonpath
-  unset control_plane_label
 fi
 
 # ------------

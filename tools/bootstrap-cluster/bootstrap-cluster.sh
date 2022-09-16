@@ -277,17 +277,24 @@ EOF
   sudo systemctl restart docker
 
   bold "Verifying nvidia-docker2 is working correctly"
+
   cuda_major_version="$(_cuda_version | cut -d '.' -f 1)"
-  test_container_ubuntu_version="18.04"
-  if [ "$cuda_major_version" == "9" ]; then
-    test_container_ubuntu_version="16.04"
+  cuda_image_tag="10.2-base-ubuntu18.04"
+  if [ "$cuda_major_version" == "7" ]; then
+    cuda_image_tag="7.0-runtime-centos7"
+  elif [ "$cuda_major_version" == "9" ]; then
+    cuda_image_tag="9.0-base-ubuntu16.04"
+  elif [ "$cuda_major_version" == "11" ]; then
+    cuda_image_tag="11.2.0-base-ubuntu18.04"
   fi
+
   set +e
-  bold "Running CUDA container: nvidia/cuda:$cuda_major_version.0-base-ubuntu$test_container_ubuntu_version"
-  if ! sudo docker run --gpus all "nvidia/cuda:$cuda_major_version.0-base-ubuntu$test_container_ubuntu_version" nvidia-smi; then
+  bold "Running CUDA container: nvidia/cuda:$cuda_image_tag"
+  if ! sudo docker run --gpus all "nvidia/cuda:$cuda_image_tag" nvidia-smi; then
     bold "WARN: nvidia-docker is not working correctly. If the problem persists after retry, please reach out support@vessl.ai for technical support."
   fi
   set -e
+  unset cuda_image_tag
   unset cuda_major_version
   unset test_container_ubuntu_version
 fi

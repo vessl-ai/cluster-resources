@@ -96,10 +96,7 @@ _command_exists() {
 }
 
 _cuda_version() {
-  if nvcc --version 2&> /dev/null; then
-    # Determine CUDA version using default nvcc binary
-    nvcc --version | sed -n 's/^.*release \([0-9]\+\.[0-9]\+\).*$/\1/p'
-  elif /usr/local/cuda/bin/nvcc --version 2&> /dev/null; then
+  if [ -f "/usr/local/cuda/bin/nvcc" ] && /usr/local/cuda/bin/nvcc --version 2&> /dev/null; then
     # Determine CUDA version using /usr/local/cuda/bin/nvcc binary
     /usr/local/cuda/bin/nvcc --version | sed -n 's/^.*release \([0-9]\+\.[0-9]\+\).*$/\1/p'
   elif [ -f "/usr/local/cuda/version.txt" ]; then
@@ -108,6 +105,9 @@ _cuda_version() {
   elif [ -f "/usr/local/cuda/version.json" ] && _command_exists jq; then
     # Determine CUDA version using /usr/local/cuda/version.txt file
     < /usr/local/cuda/version.json jq -r '.cuda_nvcc.version'
+  elif [ -f "/usr/bin/nvcc" ] && /usr/bin/nvcc --version 2&> /dev/null; then
+    # Determine CUDA version using /usr/bin/nvcc binary (usually conflicted with /usr/local/cuda, should use as a last resort)
+    /usr/bin/nvcc --version | sed -n 's/^.*release \([0-9]\+\.[0-9]\+\).*$/\1/p'
   else
     echo ""
   fi
@@ -282,10 +282,12 @@ EOF
   if [ "$cuda_major_version" == "9" ]; then
     test_container_ubuntu_version="16.04"
   fi
+  set +e
   bold "Running CUDA container: nvidia/cuda:$cuda_major_version.0-base-ubuntu$test_container_ubuntu_version"
   if ! sudo docker run --gpus all "nvidia/cuda:$cuda_major_version.0-base-ubuntu$test_container_ubuntu_version" nvidia-smi; then
-    abort "ERROR: nvidia-docker is not working correctly. If the problem persists after retry, please reach out support@vessl.ai for technical support."
+    bold "WARN: nvidia-docker is not working correctly. If the problem persists after retry, please reach out support@vessl.ai for technical support."
   fi
+  set -e
   unset cuda_major_version
   unset test_container_ubuntu_version
 fi
@@ -374,7 +376,9 @@ if [ "$K0S_ROLE" == "controller" ]; then
   k0s_token=$(sudo $k0s_executable token create --role=worker)
   bold "Node is configured as a control plane node."
   bold "To join other nodes to the cluster, run the following command on the worker node:"
-  bold "  curl -sSLf https://install.dev.vssl.ai | sudo bash -s -- --role worker --token '$k0s_token'\n\n"
+  bold ""
+  bold "  curl -sSLf https://install.dev.vssl.ai | sudo bash -s -- --role worker --token='$k0s_token'"
+  bold ""
   bold "To get Kubernetes admin's kubeconfig file, run the following command on the control plane node:"
   bold "  /usr/local/bin/k0s kubeconfig admin"
   unset k0s_token

@@ -1,3 +1,4 @@
+{{- if .Values.prometheus.enabled -}}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -18,3 +19,4 @@ spec:
     matchLabels:
       app.kubernetes.io/name: prometheus
       prometheus: vessl-prometheus
+{{- end -}}

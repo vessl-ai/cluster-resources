@@ -1,3 +1,4 @@
+{{- if .Values.prometheus.enabled -}}
 apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
 metadata:
@@ -64,3 +65,4 @@ spec:
       release: "vessl"
 
   portName: http-web
+{{- end -}}

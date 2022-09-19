@@ -1,3 +1,4 @@
+{{- if .Values.prometheus.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -15,3 +16,4 @@ spec:
     app.kubernetes.io/name: prometheus
     prometheus: vessl-prometheus
   type: ClusterIP
+{{- end -}}

@@ -2,6 +2,30 @@ apiVersion: v1
 entries:
   cluster-resources:
   - apiVersion: v2
+    created: "2022-09-26T16:37:23.926751+09:00"
+    dependencies:
+    - condition: prometheus.enabled
+      name: kube-prometheus-stack
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 39.10.0
+    digest: 55d0cd6a4d391ae20267a3cc4d6d41a49576fedc7b4329ebcfa0ebb5a4ad59fc
+    name: cluster-resources
+    urls:
+    - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/cluster-resources-0.1.23-rc1.tgz
+    version: 0.1.23-rc1
+  - apiVersion: v2
+    created: "2022-09-26T16:35:12.572501+09:00"
+    dependencies:
+    - condition: prometheus.enabled
+      name: kube-prometheus-stack
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 39.10.0
+    digest: 0a4261d30780ae8bf8596223beceb91429ab5f47b4c5847f1ec5e07bc0dcd26b
+    name: cluster-resources
+    urls:
+    - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/cluster-resources-0.1.22.tgz
+    version: 0.1.22
+  - apiVersion: v2
     created: "2022-09-07T19:17:06.802341+09:00"
     dependencies:
     - name: kube-prometheus-stack
@@ -195,7 +219,7 @@ entries:
       artifacthub.io/operator: "true"
     apiVersion: v2
     appVersion: 0.58.0
-    created: "2022-09-07T19:17:06.815037+09:00"
+    created: "2022-09-26T16:37:23.938888+09:00"
     dependencies:
     - condition: kubeStateMetrics.enabled
       name: kube-state-metrics
@@ -244,4 +268,4 @@ entries:
     urls:
     - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/charts/kube-prometheus-stack-39.10.0.tgz
     version: 39.10.0
-generated: "2022-09-07T19:17:06.788817+09:00"
+generated: "2022-09-26T16:37:23.913245+09:00"

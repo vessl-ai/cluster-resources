@@ -57,7 +57,7 @@ spec:
       - name: pod-gpu-resources
         hostPath:
           {{ if .Values.metricsExporters.dcgmExporter.podResourcePath }}
-          path: {{ .Values.metricsExporters.dcgmExporetr.podResourcePath }}
+          path: {{ .Values.metricsExporters.dcgmExporter.podResourcePath }}
           {{ else }}
           path: /var/lib/kubelet/pod-resources
           {{ end }}

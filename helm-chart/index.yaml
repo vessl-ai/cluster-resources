@@ -2,6 +2,21 @@ apiVersion: v1
 entries:
   cluster-resources:
   - apiVersion: v2
+    created: "2022-10-27T16:47:31.332133+09:00"
+    dependencies:
+    - condition: prometheus.enabled
+      name: kube-prometheus-stack
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 39.10.0
+    - name: nvidia-device-plugin
+      repository: https://nvidia.github.io/k8s-device-plugin
+      version: 0.12.3
+    digest: 489b2c02ea771151868e73a24cda0e9d4a08ec0dd7838e97d8d1748be6de0708
+    name: cluster-resources
+    urls:
+    - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/cluster-resources-0.1.23.tgz
+    version: 0.1.23
+  - apiVersion: v2
     created: "2022-09-26T16:37:23.926751+09:00"
     dependencies:
     - condition: prometheus.enabled
@@ -219,7 +234,7 @@ entries:
       artifacthub.io/operator: "true"
     apiVersion: v2
     appVersion: 0.58.0
-    created: "2022-09-26T16:37:23.938888+09:00"
+    created: "2022-10-27T16:47:31.345763+09:00"
     dependencies:
     - condition: kubeStateMetrics.enabled
       name: kube-state-metrics
@@ -268,4 +283,28 @@ entries:
     urls:
     - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/charts/kube-prometheus-stack-39.10.0.tgz
     version: 39.10.0
-generated: "2022-09-26T16:37:23.913245+09:00"
+  nvidia-device-plugin:
+  - apiVersion: v2
+    appVersion: 0.12.3
+    created: "2022-10-27T16:47:31.346803+09:00"
+    dependencies:
+    - alias: nfd
+      condition: nfd.enabled,gfd.enabled
+      name: node-feature-discovery
+      repository: https://kubernetes-sigs.github.io/node-feature-discovery/charts
+      version: 0.11.0
+    - alias: gfd
+      condition: gfd.enabled
+      name: gpu-feature-discovery
+      repository: ""
+      version: 0.6.2
+    description: A Helm chart for the nvidia-device-plugin on Kubernetes
+    digest: 75493ffbad38dfdd3184964062f28382e15581ea0bec05bb6667712a5402b234
+    home: https://github.com/NVIDIA/k8s-device-plugin
+    kubeVersion: '>= 1.10.0-0'
+    name: nvidia-device-plugin
+    type: application
+    urls:
+    - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/charts/nvidia-device-plugin-0.12.3.tgz
+    version: 0.12.3
+generated: "2022-10-27T16:47:31.316649+09:00"

@@ -6,18 +6,19 @@ metadata:
   labels:
     app.kubernetes.io/name: dcgm-exporter
     app.kubernetes.io/version: {{ .Values.metricsExporters.dcgmExporter.imageVersion }}
+    v1.k8s.vessl.ai/managed: 'true'
 spec:
   updateStrategy:
     type: RollingUpdate
   selector:
     matchLabels:
-      app.kubernetes.io/name: dcgm-exporter
-      app.kubernetes.io/version: {{ .Values.metricsExporters.dcgmExporter.imageVersion }}
+      name: dcgm-exporter
+      v1.k8s.vessl.ai/managed: 'true'
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: dcgm-exporter
-        app.kubernetes.io/version: {{ .Values.metricsExporters.dcgmExporter.imageVersion }}
+        name: dcgm-exporter
+        v1.k8s.vessl.ai/managed: 'true'
       name: dcgm-exporter
     spec:
       nodeSelector:
@@ -29,6 +30,10 @@ spec:
           value: ':9400'
         - name: DCGM_EXPORTER_KUBERNETES
           value: 'true'
+        - name: DCGM_EXPORTER_KUBERNETES_GPU_ID_TYPE
+          {{ if .Values.metricsExporters.dcgmExporter.useDeviceName }}
+          value: {{ .Values.metricsExporters.dcgmExporter.useDeviceName }}
+          {{ end }}
         name: dcgm-exporter
         ports:
         - name: metrics
@@ -41,11 +46,7 @@ spec:
         - name: pod-gpu-resources
           readOnly: true
           mountPath: /var/lib/kubelet/pod-resources
-        {{- if (empty .Values.metricsExporters.dcgmExporter.useDeviceName) }}
         command: ["dcgm-exporter", "-k"]
-        {{- else }}
-        command: ["dcgm-exporter", "-k", "--kubernetes-gpu-id-type", "device-name"]
-        {{- end }}
       tolerations:
         - effect: NoExecute
           operator: Exists
@@ -55,7 +56,11 @@ spec:
       volumes:
       - name: pod-gpu-resources
         hostPath:
+          {{ if .Values.metricsExporters.dcgmExporter.podResourcePath }}
+          path: {{ .Values.metricsExporters.dcgmExporetr.podResourcePath }}
+          {{ else }}
           path: /var/lib/kubelet/pod-resources
+          {{ end }}
       - name: nvidia-install-dir-host
         hostPath:
           path: /home/kubernetes/bin/nvidia

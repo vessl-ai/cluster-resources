@@ -9,34 +9,42 @@ agent:
   apiServer: https://api.vessl.ai
   logLevel: info
   env: prod
-  imageVersion: "0.5.13"
+  imageVersion: "0.5.14"
   sentryDsn: https://0481c31171114c109ac911ac947f0518@o386227.ingest.sentry.io/5585090
   containerLogPath: /var/lib/docker/containers
   containerLogFormat: json
 
-featureDiscovery:
-  gpuFeatureDiscovery:
-    imageVersion: v0.2.2
-  nodeFeatureDiscovery:
-    imageVersion: v0.6.0
-
-nvidiaDevicePlugin:
-  deviceListStrategy: envvar
+nvidia-device-plugin:
+  image:
+    repository: quay.io/vessl-ai/nvidia-device-plugin
+    tag: v0.12.3
+  deviceListStrategy: volume-mounts
+  nfd:
+    enabled: true
+    image:
+      repository: quay.io/vessl-ai/node-feature-discovery
+      tag: v0.11.0
+  gfd:
+    enabled: true
+    image:
+      repository: quay.io/vessl-ai/gpu-feature-discovery
+      tag: v0.6.2
 
 localPathProvisioner:
   hostPath: /opt/local-path-provisioner
-  imageVersion: v0.0.20
+  imageVersion: v0.0.22
   helperImageVersion: "21.10"
   provisionerName: rancher.io/local-path
 
 metricsExporters:
   dcgmExporter:
-    imageVersion: "2.0.13-2.1.1-ubuntu18.04"
+    imageVersion: "2.4.7-2.6.11-ubuntu20.04"
     useDeviceName:
+    podResourcePath:
   kubeStateMetrics:
-    imageVersion: v2.3.0
+    imageVersion: v2.6.0
   nodeExporter:
-    imageVersion: v1.1.2
+    imageVersion: v1.4.0
 
 tolerations:
   - key: CriticalAddonsOnly
@@ -53,7 +61,7 @@ harbor:
 
 prometheus:
   remoteWriteURL: https://remote-write-gateway.vessl.ai/remote-write
-  enabled: false
+  enabled: true
 
 kube-prometheus-stack:
   prometheusOperator:

@@ -2,5 +2,8 @@ dependencies:
 - name: kube-prometheus-stack
   repository: https://prometheus-community.github.io/helm-charts
   version: 39.10.0
-digest: sha256:23027a98f7e1cafba95c0a6fb5aa17a3562466723a95420baa6df9da1bc8e38b
-generated: "2022-08-31T20:22:30.307904+09:00"
+- name: nvidia-device-plugin
+  repository: https://nvidia.github.io/k8s-device-plugin
+  version: 0.12.3
+digest: sha256:40f0a96d3c5373fc41609b23ef1f35505179c48a0a6f51b8e7cb03a73723cc02
+generated: "2022-10-19T12:06:44.065029+09:00"

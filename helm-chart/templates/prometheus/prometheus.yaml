@@ -34,6 +34,8 @@ spec:
           regex: feature_node_kubernetes_io_(.+)
         - action: labeldrop
           regex: label_feature_node_kubernetes_io_(.+)
+        - action: labeldrop
+          regex: minikube_(.+)
   serviceAccountName: vessl-prometheus
   serviceMonitorSelector:
     matchLabels:

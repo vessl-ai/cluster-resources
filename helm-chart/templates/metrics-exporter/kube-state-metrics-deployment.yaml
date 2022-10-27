@@ -7,11 +7,13 @@ spec:
   selector:
     matchLabels:
       name: kube-state-metrics
+      v1.k8s.vessl.ai/managed: 'true'
   replicas: 1
   template:
     metadata:
       labels:
         name: kube-state-metrics
+        v1.k8s.vessl.ai/managed: 'true'
     spec:
       serviceAccountName: vessl-kube-state-metrics
       tolerations:

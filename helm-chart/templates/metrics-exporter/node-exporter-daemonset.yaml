@@ -11,12 +11,12 @@ spec:
   selector:
     matchLabels:
       name: node-exporter
-      phase: prod
+      v1.k8s.vessl.ai/managed: 'true'
   template:
     metadata:
       labels:
         name: node-exporter
-        phase: prod
+        v1.k8s.vessl.ai/managed: 'true'
       annotations:
         seccomp.security.alpha.kubernetes.io/pod: 'docker/default'
     spec:
@@ -38,6 +38,7 @@ spec:
         runAsNonRoot: true
         runAsUser: 65534
       hostPID: true
+      hostNetwork: true
       containers:
       - name: node-exporter
         image: {{ template "vessl.image.source" . -}}/node-exporter:{{- .Values.metricsExporters.nodeExporter.imageVersion }}
@@ -45,6 +46,7 @@ spec:
           - --path.procfs=/host/proc
           - --path.sysfs=/host/sys
           - --path.rootfs=/host/root
+          - --collector.ethtool
           - --collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker|var/lib/containerd|var/lib/containers/.+)($|/)
           - --collector.filesystem.ignored-fs-types=^(autofs|binfmt_misc|cgroup|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|sysfs|tracefs)$
         ports:

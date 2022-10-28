@@ -16,12 +16,12 @@ spec:
         v1.k8s.vessl.ai/logs-enabled: 'true'
         v1.k8s.vessl.ai/type: agent
     spec:
-      {{- with .Values.harbor.nodeSelector }}
+      {{- with .Values.agent.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
       {{- end }}
       tolerations:
-{{ toYaml .Values.tolerations | indent 8 }}
+{{ toYaml .Values.agent.tolerations | indent 8 }}
       containers:
         - name: vessl-cluster-agent
 {{ if .Values.agent.customImageSource }}

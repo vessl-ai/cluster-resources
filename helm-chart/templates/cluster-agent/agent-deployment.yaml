@@ -16,6 +16,10 @@ spec:
         v1.k8s.vessl.ai/logs-enabled: 'true'
         v1.k8s.vessl.ai/type: agent
     spec:
+      {{- with .Values.harbor.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
       tolerations:
 {{ toYaml .Values.tolerations | indent 8 }}
       containers:

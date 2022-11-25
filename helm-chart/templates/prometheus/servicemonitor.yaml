@@ -43,7 +43,7 @@ spec:
     metricRelabelings:
     - sourceLabels:
         - __name__
-      regex: '(kube_pod_container_resource_requests|kube_pod_container_resource_limits|kube_node_status_capacity|kube_node_status_allocatable)'
+      regex: '(kube_pod_container_resource_requests|kube_pod_container_resource_limits|kube_node_status_capacity|kube_node_status_allocatable|kube_persistentvolume_(.+)|kube_persistentvolumeclaim_(.+)|kube_pod_status_phase|kube_pod_info)'
       action: keep
     - sourceLabels: [node]
       separator: ;

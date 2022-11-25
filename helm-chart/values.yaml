@@ -62,6 +62,8 @@ harbor:
 prometheus:
   remoteWriteURL: https://remote-write-gateway.vessl.ai/remote-write
   enabled: true
+  nodeSelector: {}
+  tolerations: []
 
 kube-prometheus-stack:
   prometheusOperator:

@@ -6,6 +6,14 @@ metadata:
   labels:
     app: prometheus
 spec:
+  {{- with .Values.prometheus.nodeSelector }}
+  nodeSelector:
+{{ toYaml . | indent 4}}
+  {{- end }}
+  {{- with .Values.prometheus.tolerations }}
+  tolerations:
+{{ toYaml . | indent 4}}
+  {{- end }}
   alerting:
     alertmanagers:
       []

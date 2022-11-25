@@ -16,8 +16,14 @@ spec:
         v1.k8s.vessl.ai/managed: 'true'
     spec:
       serviceAccountName: vessl-kube-state-metrics
+      {{- with .Values.metricsExporters.kubeStateMetrics.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.metricsExporters.kubeStateMetrics.tolerations }}
       tolerations:
-{{ toYaml .Values.tolerations | indent 8 }}
+{{ toYaml . | indent 8 }}
+      {{- end }}
       containers:
       - name: kube-state-metrics
         image: {{ template "vessl.image.source" . -}}/kube-state-metrics:{{- .Values.metricsExporters.kubeStateMetrics.imageVersion }}

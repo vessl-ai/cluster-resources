@@ -77,7 +77,7 @@ spec:
     metricRelabelings:
     - sourceLabels:
         - __name__
-      regex: '(node_filesystem_avail_bytes|node_filesystem_size_bytes|node_ethtool_info|node_network_info|node_network_receive_bytes_total|node_network_transmit_bytes_total)'
+      regex: '(node_filesystem_avail_bytes|node_filesystem_size_bytes|node_ethtool_info|node_network_info|node_network_receive_bytes_total|node_network_transmit_bytes_total|node_network_route_info)'
       action: keep
     - regex: '^instance$'
       action: labeldrop

@@ -2,6 +2,17 @@
 
 ## Release Notes
 
+### v0.1.27(2022-11-25)
+- Updates version of dependency packages
+  - nvidia-device-plugin to v0.12.3
+  - node-feature-discovery to v0.11.0
+  - gpu-feature-discovery to v0.6.2
+  - local-path-provisioner to v0.0.22
+  - dcgm-exporter to 2.4.7-2.6.11-ubuntu20.04
+  - kube-state-metrics to v2.6.0
+  - node-exporter to v1.4.0
+- Adds prometheus-operator as a dependency. The prometheus is configured to perform remote-write to VESSL service by default. If you have your own prometheus-operator, you may prevent installing another operator by setting `kube-prometheus-stack.prometheusOperator.enabled = false`.
+
 ### v0.1.20(2022-08-25)
 
 - Adds optional agent.clusterName parameter to configure created cluster name.

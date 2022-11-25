@@ -2,21 +2,6 @@ apiVersion: v1
 entries:
   cluster-resources:
   - apiVersion: v2
-    created: "2022-11-16T22:05:19.783306+09:00"
-    dependencies:
-    - condition: prometheus.enabled
-      name: kube-prometheus-stack
-      repository: https://prometheus-community.github.io/helm-charts
-      version: 39.10.0
-    - name: nvidia-device-plugin
-      repository: https://nvidia.github.io/k8s-device-plugin
-      version: 0.12.3
-    digest: c43cd88fdba49669eee7e90d881d2ea44bc537993caa96b636e1cca93a0d05bc
-    name: cluster-resources
-    urls:
-    - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/cluster-resources-0.1.25.tgz
-    version: 0.1.25
-  - apiVersion: v2
     created: "2022-10-27T17:08:52.244501+09:00"
     dependencies:
     - condition: prometheus.enabled

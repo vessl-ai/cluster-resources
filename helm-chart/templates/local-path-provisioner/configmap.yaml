@@ -55,6 +55,10 @@ data:
     metadata:
       name: helper-pod
     spec:
+      {{- with .Values.localPathProvisioner.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
       containers:
       - name: helper-pod
         image: quay.io/vessl-ai/busybox:{{- .Values.localPathProvisioner.helperImageVersion }}

@@ -2,6 +2,11 @@
 
 ## Release Notes
 
+### v0.1.29 (2022-12-21)
+- bump up cluster-agent to 0.6.0
+- Set DCGM_EXPORTER_KUBERNETES_GPU_ID_TYPE only when non-empty value is given from chart
+- Update ClusterRole of kube-state-metrics
+
 ### v0.1.28 (2022-12-09)
 - Allow tolerations on local path provisioner
 

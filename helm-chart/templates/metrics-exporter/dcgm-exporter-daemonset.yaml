@@ -26,6 +26,8 @@ spec:
       containers:
       - image: {{ template "vessl.image.source" . -}}/dcgm-exporter:{{- .Values.metricsExporters.dcgmExporter.imageVersion }}
         env:
+        - name: __DCGM_DBG_LVL
+          value: 'NONE'
         - name: DCGM_EXPORTER_LISTEN
           value: ':9400'
         - name: DCGM_EXPORTER_KUBERNETES

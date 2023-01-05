@@ -2,6 +2,21 @@ apiVersion: v1
 entries:
   cluster-resources:
   - apiVersion: v2
+    created: "2023-01-05T14:28:35.773359+09:00"
+    dependencies:
+    - condition: prometheus.enabled
+      name: kube-prometheus-stack
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 39.10.0
+    - name: nvidia-device-plugin
+      repository: https://nvidia.github.io/k8s-device-plugin
+      version: 0.12.3
+    digest: 45c6523dc8695982e849d50bee309761ad1a0ef0dbfbc2a5b5c58e7275ec00ef
+    name: cluster-resources
+    urls:
+    - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/cluster-resources-0.1.30.tgz
+    version: 0.1.30
+  - apiVersion: v2
     created: "2022-12-21T02:50:52.276741+09:00"
     dependencies:
     - condition: prometheus.enabled
@@ -294,7 +309,7 @@ entries:
       artifacthub.io/operator: "true"
     apiVersion: v2
     appVersion: 0.58.0
-    created: "2022-12-21T02:50:52.287652+09:00"
+    created: "2023-01-05T14:28:35.795077+09:00"
     dependencies:
     - condition: kubeStateMetrics.enabled
       name: kube-state-metrics
@@ -346,7 +361,7 @@ entries:
   nvidia-device-plugin:
   - apiVersion: v2
     appVersion: 0.12.3
-    created: "2022-12-21T02:50:52.288463+09:00"
+    created: "2023-01-05T14:28:35.796591+09:00"
     dependencies:
     - alias: nfd
       condition: nfd.enabled,gfd.enabled
@@ -367,4 +382,4 @@ entries:
     urls:
     - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/charts/nvidia-device-plugin-0.12.3.tgz
     version: 0.12.3
-generated: "2022-12-21T02:50:52.262475+09:00"
+generated: "2023-01-05T14:28:35.747121+09:00"

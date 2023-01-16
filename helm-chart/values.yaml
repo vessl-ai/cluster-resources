@@ -19,6 +19,7 @@ nvidia-device-plugin:
     repository: quay.io/vessl-ai/nvidia-device-plugin
     tag: v0.12.3
   deviceListStrategy: volume-mounts
+  passDeviceSpecs: true
   nfd:
     enabled: true
     image:

@@ -1,1 +1,2 @@
 helm-chart/charts
+tools/migrator/*.yaml

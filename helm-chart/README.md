@@ -2,11 +2,14 @@
 
 ## Release Notes
 
+### v0.1.31 (2023-01-05)
+- Bump up cluster-agent to 0.6.2
+
 ### v0.1.30 (2023-01-05)
 - Suppress nv-hostengine.log of dcgm-exporter
 
 ### v0.1.29 (2022-12-21)
-- bump up cluster-agent to 0.6.0
+- Bump up cluster-agent to 0.6.0
 - Set DCGM_EXPORTER_KUBERNETES_GPU_ID_TYPE only when non-empty value is given from chart
 - Update ClusterRole of kube-state-metrics
 

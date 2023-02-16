@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v0.1.32 (2023-02-16)
+- Add enabled flags to subcharts.
+
 ### v0.1.31 (2023-01-05)
 - Bump up cluster-agent to 0.6.2
 

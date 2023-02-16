@@ -15,6 +15,7 @@ agent:
   containerLogFormat: json
 
 nvidia-device-plugin:
+  enabled: true
   image:
     repository: quay.io/vessl-ai/nvidia-device-plugin
     tag: v0.12.3
@@ -31,6 +32,7 @@ nvidia-device-plugin:
       tag: v0.6.2
 
 localPathProvisioner:
+  enabled: true
   hostPath: /opt/local-path-provisioner
   imageVersion: v0.0.22
   helperImageVersion: "21.10"
@@ -38,6 +40,7 @@ localPathProvisioner:
 
 metricsExporters:
   dcgmExporter:
+    enavbled: true
     imageVersion: "2.4.7-2.6.11-ubuntu20.04"
     useDeviceName:
     podResourcePath:

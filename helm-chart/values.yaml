@@ -40,13 +40,15 @@ localPathProvisioner:
 
 metricsExporters:
   dcgmExporter:
-    enavbled: true
+    enabled: true
     imageVersion: "2.4.7-2.6.11-ubuntu20.04"
     useDeviceName:
     podResourcePath:
   kubeStateMetrics:
+    enabled: true
     imageVersion: v2.6.0
   nodeExporter:
+    enabled: true
     imageVersion: v1.4.0
 
 tolerations:
@@ -63,8 +65,8 @@ harbor:
   clusterIP: # @XXX: consult with vessl team if you are going to use client-side harbor
 
 prometheus:
-  remoteWriteURL: https://remote-write-gateway.vessl.ai/remote-write
   enabled: true
+  remoteWriteURL: https://remote-write-gateway.vessl.ai/remote-write
   nodeSelector: {}
   tolerations: []
 

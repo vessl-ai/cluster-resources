@@ -1,4 +1,4 @@
-{{- if empty .Values.preinstalledNamespace -}}
+{{- if .Values.localPathProvisioner.enabled -}}
 kind: ConfigMap
 apiVersion: v1
 metadata:

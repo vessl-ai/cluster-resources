@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v0.1.34 (2023-02-24)
+- Set `enabled` flag for local-path-provisioner, dcgm-exporter, kube-state-metrics and node-exporter
+
 ### v0.1.33 (2023-02-24)
 - Bump up cluster-agent to 0.6.3
 

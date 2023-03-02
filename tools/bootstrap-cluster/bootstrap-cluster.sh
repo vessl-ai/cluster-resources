@@ -273,6 +273,32 @@ if _command_exists nvidia-container-toolkit; then
 }
 EOF
 
+  # Update /etc/nvidia-container-runtime/config.toml
+  # To prevent unprivileged container access all host GPUs, Set accept-nvidia-visible-devices-envvar-when-unprivileged=false
+  # VESSL will only allow GPU access by volume mounts by setting accept-nvidia-visible-devices-as-volume-mounts=true
+  # See also: https://docs.google.com/document/d/1zy0key-EL6JH50MZgwg96RPYxxXXnVUdxLZwGiyqLd8/edit
+  bold "Setting NVIDIA device device visibility method as volume mounts"
+  cat << EOF > /etc/nvidia-container-runtime/config.toml
+disable-require = false
+#swarm-resource = "DOCKER_RESOURCE_GPU"
+accept-nvidia-visible-devices-envvar-when-unprivileged = false
+accept-nvidia-visible-devices-as-volume-mounts = true
+
+[nvidia-container-cli]
+#root = "/run/nvidia/driver"
+#path = "/usr/bin/nvidia-container-cli"
+environment = []
+#debug = "/var/log/nvidia-container-toolkit.log"
+#ldcache = "/etc/ld.so.cache"
+load-kmods = true
+#no-cgroups = false
+#user = "root:video"
+ldconfig = "@/sbin/ldconfig.real"
+
+[nvidia-container-runtime]
+#debug = "/var/log/nvidia-container-runtime.log"
+EOF
+
   bold "Restarting Docker daemon"
   sudo systemctl restart docker
 
@@ -290,7 +316,7 @@ EOF
 
   set +e
   bold "Running CUDA container: nvidia/cuda:$cuda_image_tag"
-  if ! sudo docker run --gpus all "nvidia/cuda:$cuda_image_tag" nvidia-smi; then
+  if ! sudo docker run --privileged --gpus all "nvidia/cuda:$cuda_image_tag" nvidia-smi; then
     bold "WARN: nvidia-docker is not working correctly. If the problem persists after retry, please reach out support@vessl.ai for technical support."
   fi
   set -e

@@ -1,26 +1,37 @@
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
-  name: vessl-agent
+  name: vessl-cluster-agent
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      name: vessl-agent
+      name: vessl-cluster-agent
   template:
     metadata:
       labels:
-        name: vessl-agent
+        name: vessl-cluster-agent
         v1.k8s.savvihub.com/logs-enabled: 'true'
         v1.k8s.savvihub.com/type: agent
         v1.k8s.vessl.ai/logs-enabled: 'true'
         v1.k8s.vessl.ai/type: agent
     spec:
+      {{- with .Values.agent.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
       tolerations:
-{{ toYaml .Values.tolerations | indent 8 }}
+{{ toYaml .Values.agent.tolerations | indent 8 }}
       containers:
-        - name: vessl-agent
+        - name: vessl-cluster-agent
+{{ if .Values.agent.customImageSource }}
+          image: {{ .Values.agent.customImageSource }}
+{{ else }}
           image: {{ template "vessl.image.source" . -}}/cluster-agent:{{- .Values.agent.imageVersion }}
-          imagePullPolicy: IfNotPresent
+{{ end }}
+          imagePullPolicy: {{ .Values.agent.imagePullPolicy }}
+          args:
+            - "cluster"
           env:
             - name: NODE_NAME
               valueFrom:
@@ -29,6 +40,10 @@ spec:
                   fieldPath: spec.nodeName
             - name: VESSL_ENV
               value: "{{ .Values.agent.env }}"
+            {{- if .Values.agent.clusterName }}
+            - name: VESSL_CLUSTER_NAME
+              value: "{{ .Values.agent.clusterName }}"
+            {{- end }}
             - name: VESSL_API_URL
               value: "{{ .Values.agent.apiServer }}"
             - name: VESSL_LOG_LEVEL

@@ -1,0 +1,22 @@
+{{- if .Values.prometheus.enabled -}}
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: vessl-kube-prometheus-stac-prometheus
+  labels:
+    app: kube-prometheus-stack-prometheus
+    
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: vessl
+    app.kubernetes.io/version: "39.10.0"
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    chart: kube-prometheus-stack-39.10.0
+    release: "vessl"
+    heritage: "Helm"
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+      prometheus: vessl-prometheus
+{{- end -}}

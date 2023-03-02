@@ -1,0 +1,19 @@
+{{- if .Values.prometheus.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: vessl-prometheus
+  labels:
+    app: prometheus
+    self-monitor: "true"
+spec:
+  ports:
+  - name: http-web
+    port: 9090
+    targetPort: 9090
+  publishNotReadyAddresses: false
+  selector:
+    app.kubernetes.io/name: prometheus
+    prometheus: vessl-prometheus
+  type: ClusterIP
+{{- end -}}

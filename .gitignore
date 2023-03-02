@@ -1,0 +1,3 @@
+helm-chart/charts
+tools/migrator/*.yaml
+.DS_Store

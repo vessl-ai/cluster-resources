@@ -45,12 +45,6 @@ app: "harbor"
     {{- else -}}
       quay.io/vessl-ai
     {{- end -}}
-  {{- else if eq (include "vessl.image.sourceType" .) "vessl-harbor" -}}
-    {{- if .Values.harbor.enabled -}}
-      {{- .Values.harbor.clusterIP -}}/harbor/public
-    {{- else -}}
-      harbor.vessl.ai/public
-    {{- end -}}
   {{- else -}}
     {{- fail "Unsupported imageSourceType" -}}
   {{- end -}}

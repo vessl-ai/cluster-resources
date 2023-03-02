@@ -1,12 +1,9 @@
-apiVersion: v2
-name: cluster-resources
-version: 0.1.34
 dependencies:
 - name: kube-prometheus-stack
-  version: "39.10.0"
   repository: https://prometheus-community.github.io/helm-charts
-  condition: prometheus.enabled
+  version: 39.10.0
 - name: nvidia-device-plugin
-  version: "0.12.3"
   repository: https://nvidia.github.io/k8s-device-plugin
-  condition: nvidia-device-plugin.enabled
+  version: 0.12.3
+digest: sha256:a1dd0135181883dc27fb777138934e43cb1e0d838fa0ff7b2a47cb81714d588b
+generated: "2023-02-16T19:48:17.914838+09:00"

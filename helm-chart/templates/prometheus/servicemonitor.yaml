@@ -1,0 +1,101 @@
+{{- if .Values.prometheus.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    prometheus: vessl-prometheus
+  name: vessl-dcgm-servicemonitor
+spec:
+  endpoints:
+  - path: /metrics
+    port: metrics
+    honorLabels: true
+    metricRelabelings:
+    - regex: '^(Hostname|instance)$'
+      action: labeldrop
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_node_name]
+      separator: ;
+      regex: ^(.*)$
+      targetLabel: nodename
+      replacement: $1
+      action: replace
+    - regex: feature_node_kubernetes_io_(.+)
+      action: labeldrop
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      v1.k8s.vessl.ai/type: dcgm-exporter
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    prometheus: vessl-prometheus
+  name: vessl-kube-state-metrics-servicemonitor
+spec:
+  endpoints:
+  - path: /metrics
+    port: metrics
+    honorLabels: true
+    metricRelabelings:
+    - sourceLabels:
+        - __name__
+      regex: '(kube_pod_container_resource_requests|kube_pod_container_resource_limits|kube_node_status_capacity|kube_node_status_allocatable|kube_persistentvolume_(.+)|kube_persistentvolumeclaim_(.+)|kube_pod_status_phase|kube_pod_info)'
+      action: keep
+    - sourceLabels: [node]
+      separator: ;
+      regex: ^(.*)$
+      targetLabel: nodename
+      replacement: $1
+      action: replace
+    - regex: '^instance$'
+      action: labeldrop
+    relabelings:
+    - regex: feature_node_kubernetes_io_(.+)
+      action: labeldrop
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      v1.k8s.vessl.ai/type: kube-state-metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    prometheus: vessl-prometheus
+  name: vessl-node-exporter-servicemonitor
+spec:
+  endpoints:
+  - path: /metrics
+    port: metrics
+    honorLabels: true
+    metricRelabelings:
+    - sourceLabels:
+        - __name__
+      regex: '(node_filesystem_avail_bytes|node_filesystem_size_bytes|node_ethtool_info|node_network_info|node_network_receive_bytes_total|node_network_transmit_bytes_total|node_network_route_info)'
+      action: keep
+    - regex: '^instance$'
+      action: labeldrop
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_node_name]
+      separator: ;
+      regex: ^(.*)$
+      targetLabel: nodename
+      replacement: $1
+      action: replace
+    - regex: feature_node_kubernetes_io_(.+)
+      action: labeldrop
+    - regex: '^pod$'
+      action: labeldrop
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      v1.k8s.vessl.ai/type: node-exporter
+{{- end -}}

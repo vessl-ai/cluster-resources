@@ -1,39 +1,55 @@
 agent:
+  customImageSource:
   accessToken:
+  clusterName:
   ingressEndpoint:
+  imagePullPolicy: IfNotPresent
   providerType: on-premise
   localStorageClassName:
   apiServer: https://api.vessl.ai
   logLevel: info
   env: prod
-  imageVersion: "0.5.9"
+  imageVersion: "0.6.8"
   sentryDsn: https://0481c31171114c109ac911ac947f0518@o386227.ingest.sentry.io/5585090
   containerLogPath: /var/lib/docker/containers
   containerLogFormat: json
 
-featureDiscovery:
-  gpuFeatureDiscovery:
-    imageVersion: v0.2.2
-  nodeFeatureDiscovery:
-    imageVersion: v0.6.0
-
-nvidiaDevicePlugin:
-  deviceListStrategy: envvar
+nvidia-device-plugin:
+  enabled: true
+  image:
+    repository: quay.io/vessl-ai/nvidia-device-plugin
+    tag: v0.12.3
+  deviceListStrategy: volume-mounts
+  nfd:
+    enabled: true
+    image:
+      repository: quay.io/vessl-ai/node-feature-discovery
+      tag: v0.11.0
+  gfd:
+    enabled: true
+    image:
+      repository: quay.io/vessl-ai/gpu-feature-discovery
+      tag: v0.6.2
 
 localPathProvisioner:
+  enabled: true
   hostPath: /opt/local-path-provisioner
-  imageVersion: v0.0.20
+  imageVersion: v0.0.22
   helperImageVersion: "21.10"
   provisionerName: rancher.io/local-path
 
 metricsExporters:
   dcgmExporter:
-    imageVersion: "2.0.13-2.1.1-ubuntu18.04"
+    enabled: true
+    imageVersion: "2.4.7-2.6.11-ubuntu20.04"
     useDeviceName:
+    podResourcePath:
   kubeStateMetrics:
-    imageVersion: v1.9.7
+    enabled: true
+    imageVersion: v2.6.0
   nodeExporter:
-    imageVersion: v1.1.2
+    enabled: true
+    imageVersion: v1.4.0
 
 tolerations:
   - key: CriticalAddonsOnly
@@ -41,9 +57,45 @@ tolerations:
 
 harbor:
   enabled: false
-  mirrorSourceType: quay # one of quay, vessl-harbor
+  mirrorSourceType: quay # must be quay
   nodeSelector: {}
   harborAdminPassword: Harbor12345
   registryPassword: changeme
   databasePassword: changeme2
   clusterIP: # @XXX: consult with vessl team if you are going to use client-side harbor
+
+prometheus:
+  enabled: true
+  remoteWriteURL: https://remote-write-gateway.vessl.ai/remote-write
+  nodeSelector: {}
+  tolerations: []
+
+kube-prometheus-stack:
+  prometheusOperator:
+    enabled: true # if you already have prometheus-operator, set this false
+  defaultRules:
+    create: false
+  alertmanager:
+    enabled: false
+  grafana:
+    enabled: false
+  kubeApiServer:
+    enabled: false
+  kubelet:
+    enabled: false
+  kubeControllerManager:
+    enabled: false
+  coreDns:
+    enabled: false
+  kubeEtcd:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeProxy:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  nodeExporter:
+    enabled: false
+  prometheus:
+    enabled: false

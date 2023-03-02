@@ -1,4 +1,4 @@
-{{- if empty .Values.preinstalledNamespace -}}
+{{- if .Values.localPathProvisioner.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,8 +14,14 @@ spec:
         app: vessl-local-path-provisioner
     spec:
       serviceAccountName: vessl-local-path-provisioner-service-account
+      {{- with .Values.localPathProvisioner.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.localPathProvisioner.tolerations }}
       tolerations:
-{{ toYaml .Values.tolerations | indent 8 }}
+{{ toYaml . | indent 8 }}
+      {{- end }}
       containers:
         - name: local-path-provisioner
           image: quay.io/vessl-ai/local-path-provisioner:{{- .Values.localPathProvisioner.imageVersion }}

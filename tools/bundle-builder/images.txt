@@ -5,7 +5,6 @@ goharbor/harbor-portal:v2.5.0
 goharbor/redis-photon:v2.5.0
 goharbor/registry-photon:v2.5.0
 goharbor/harbor-registryctl:v2.5.0
-quay.io/prometheus/prometheus:v2.37.0
 quay.io/vessl-ai/setup-harbor-for-vessl:latest
 quay.io/vessl-ai/busybox:21.10
 quay.io/vessl-ai/local-path-provisioner:v0.0.22

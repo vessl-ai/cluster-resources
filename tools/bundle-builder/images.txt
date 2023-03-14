@@ -14,3 +14,15 @@ quay.io/vessl-ai/kube-state-metrics:v2.6.0
 quay.io/vessl-ai/node-exporter:v1.4.0
 quay.io/vessl-ai/nvidia-device-plugin:v0.12.3
 quay.io/vessl-ai/cluster-agent:0.6.8
+k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.2.0
+quay.io/vessl-ai/node-feature-discovery:v0.11.0
+quay.io/vessl-ai/gpu-feature-discovery:v0.6.2
+quay.io/kiwigrid/k8s-sidecar:1.19.2
+grafana/grafana:9.0.5
+registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.5.0
+quay.io/prometheus-operator/prometheus-operator:v0.58.0
+quay.io/prometheus/alertmanager:v0.24.0
+quay.io/prometheus/node-exporter:v1.3.1
+quay.io/prometheus/prometheus:v2.37.0
+bats/bats:v1.4.1
+k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.2.0

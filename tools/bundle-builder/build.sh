@@ -17,4 +17,5 @@ docker load < output/$BUNDLE_FILENAME
 
 tar xfO output/$BUNDLE_FILENAME manifest.json | jq -r "[.[].RepoTags] | flatten[]" > output/bundle-images.txt
 cat images.txt >> output/bundle-images.txt
-xargs docker save -o < output/bundle-images.txt
+xargs docker save < output/bundle-images.txt | gzip > vessl-k0s-bundle.gz
+

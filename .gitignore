@@ -1,4 +1,3 @@
 helm-chart/charts
-tools/bundle-builder/output
 tools/migrator/*.yaml
 .DS_Store

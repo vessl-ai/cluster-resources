@@ -54,6 +54,8 @@ metricsExporters:
 tolerations:
   - key: CriticalAddonsOnly
     operator: Exists
+  - key: nvidia.com/gpu
+    operator: Exists
 
 harbor:
   enabled: false

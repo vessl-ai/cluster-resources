@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: vessl-critical-pods
+spec:
+  hard:
+    pods: 1G
+  scopeSelector:
+    matchExpressions:
+      - scopeName: PriorityClass
+        operator: In
+        values:
+          - system-node-critical
+          - system-cluster-critical
+

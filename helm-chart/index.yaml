@@ -2,6 +2,27 @@ apiVersion: v1
 entries:
   cluster-resources:
   - apiVersion: v2
+    created: "2023-03-31T19:02:34.606872+09:00"
+    dependencies:
+    - condition: prometheus.enabled
+      name: kube-prometheus-stack
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 39.10.0
+    - condition: nvidia-device-plugin.enabled
+      name: nvidia-device-plugin
+      repository: https://nvidia.github.io/k8s-device-plugin
+      version: 0.12.3
+    - alias: nfd
+      condition: nfd.enabled
+      name: node-feature-discovery
+      repository: https://kubernetes-sigs.github.io/node-feature-discovery/charts
+      version: 0.11.0
+    digest: eb8814dcddf6bdaae4b14b9402553556590ad19264e8340527d3e1f7628be163
+    name: cluster-resources
+    urls:
+    - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/cluster-resources-0.1.36.tgz
+    version: 0.1.36
+  - apiVersion: v2
     created: "2023-03-31T12:53:45.941801+09:00"
     dependencies:
     - condition: prometheus.enabled
@@ -388,7 +409,7 @@ entries:
       artifacthub.io/operator: "true"
     apiVersion: v2
     appVersion: 0.58.0
-    created: "2023-03-31T12:53:45.953847+09:00"
+    created: "2023-03-31T19:02:34.618942+09:00"
     dependencies:
     - condition: kubeStateMetrics.enabled
       name: kube-state-metrics
@@ -437,10 +458,29 @@ entries:
     urls:
     - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/charts/kube-prometheus-stack-39.10.0.tgz
     version: 39.10.0
+  node-feature-discovery:
+  - apiVersion: v2
+    appVersion: v0.11.0
+    created: "2023-03-31T19:02:34.619506+09:00"
+    description: 'Detects hardware features available on each node in a Kubernetes
+      cluster, and advertises those features using node labels. '
+    digest: 76622631aeb287b26f4c57ca5d3f8ab76571bbb1473b276227bf769cb40b9318
+    home: https://github.com/kubernetes-sigs/node-feature-discovery
+    keywords:
+    - feature-discovery
+    - feature-detection
+    - node-labels
+    name: node-feature-discovery
+    sources:
+    - https://github.com/kubernetes-sigs/node-feature-discovery
+    type: application
+    urls:
+    - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/charts/node-feature-discovery-chart-0.11.0.tgz
+    version: 0.11.0
   nvidia-device-plugin:
   - apiVersion: v2
     appVersion: 0.12.3
-    created: "2023-03-31T12:53:45.954744+09:00"
+    created: "2023-03-31T19:02:34.620479+09:00"
     dependencies:
     - alias: nfd
       condition: nfd.enabled,gfd.enabled
@@ -461,4 +501,4 @@ entries:
     urls:
     - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/charts/nvidia-device-plugin-0.12.3.tgz
     version: 0.12.3
-generated: "2023-03-31T12:53:45.927412+09:00"
+generated: "2023-03-31T19:02:34.591704+09:00"

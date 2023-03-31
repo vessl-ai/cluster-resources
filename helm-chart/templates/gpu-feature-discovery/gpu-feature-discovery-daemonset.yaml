@@ -1,4 +1,5 @@
 {{- if .Values.gfd.enabled -}}
+# Based on https://github.com/NVIDIA/gpu-feature-discovery/blob/v0.6.2/deployments/static/gpu-feature-discovery-daemonset.yaml
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -26,6 +27,8 @@ spec:
               mountPath: "/etc/kubernetes/node-feature-discovery/features.d"
             - name: dmi-product-name
               mountPath: "/sys/class/dmi/id/product_name"
+
+            # GKE-specific mounts
             - name: device-plugin
               mountPath: /device-plugin
             - name: dev

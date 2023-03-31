@@ -31,6 +31,19 @@ nvidia-device-plugin:
       repository: quay.io/vessl-ai/gpu-feature-discovery
       tag: v0.6.2
 
+# GKE has it's own standalone nvidia-device-plugin, but has no nfd & gfd
+# Do not enable subcharts of nvidia-device-plugin when using this
+nfd:
+  enabled: false
+  image:
+    repository: quay.io/vessl-ai/node-feature-discovery
+    tag: v0.11.0
+gfd:
+  enabled: false
+  image:
+    repository: quay.io/vessl-ai/gpu-feature-discovery
+    tag: v0.6.2
+
 localPathProvisioner:
   enabled: true
   hostPath: /opt/local-path-provisioner

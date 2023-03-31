@@ -5,5 +5,8 @@ dependencies:
 - name: nvidia-device-plugin
   repository: https://nvidia.github.io/k8s-device-plugin
   version: 0.12.3
-digest: sha256:a1dd0135181883dc27fb777138934e43cb1e0d838fa0ff7b2a47cb81714d588b
-generated: "2023-02-16T19:48:17.914838+09:00"
+- name: node-feature-discovery
+  repository: https://kubernetes-sigs.github.io/node-feature-discovery/charts
+  version: 0.11.0
+digest: sha256:271fbab3d163259d04f28d9fa658117ee4f96ffa88548940d8d9c628f165db8c
+generated: "2023-03-31T16:45:16.027628+09:00"

@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v0.1.37 (2023-03-31)
+- Introduces `prometheus.standalone` value: remote-write is now an option.
+
 ### v0.1.34 (2023-02-24)
 - Set `enabled` flag for local-path-provisioner, dcgm-exporter, kube-state-metrics and node-exporter
 

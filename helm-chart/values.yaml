@@ -81,6 +81,8 @@ harbor:
 
 prometheus:
   enabled: true
+  standalone: false
+  image: quay.io/prometheus/prometheus:v2.37.0
   remoteWriteURL: https://remote-write-gateway.vessl.ai/remote-write
   nodeSelector: {}
   tolerations: []

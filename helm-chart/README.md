@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v0.1.38 (2023-04-04)
+- User can use `simpleRegistry` option instead of `harbor` option in some specific case.
+
 ### v0.1.37 (2023-03-31)
 - Introduces `prometheus.standalone` value: remote-write is now an option.
 

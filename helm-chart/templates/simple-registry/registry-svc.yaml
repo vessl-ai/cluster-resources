@@ -1,0 +1,18 @@
+{{- if eq .Values.simpleRegistry.enabled true -}}
+# Source: cluster-resources/charts/harbor/templates/nginx/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: registry
+  labels:
+    app: registry
+spec:
+  type: ClusterIP
+  clusterIP: {{ required "A valid clusterIP is required!" .Values.simpleRegistry.clusterIP }}
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
+  selector:
+    app: registry
+{{- end -}}

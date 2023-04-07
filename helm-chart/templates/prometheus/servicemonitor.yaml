@@ -53,6 +53,13 @@ spec:
       action: replace
     - regex: '^instance$'
       action: labeldrop
+    - action: labelkeep
+      regex: ^(pod|namespace|(.*)_vessl_ai_(.*)|__(.+)__)$
+    - action: labelmap
+      regex: label_(.+)_k8s_vessl_ai_(.+)
+      replacement: '${1}_k8s_vessl_ai_${2}'
+    - action: labeldrop
+      regex: label_(.*)
     relabelings:
     - regex: feature_node_kubernetes_io_(.+)
       action: labeldrop

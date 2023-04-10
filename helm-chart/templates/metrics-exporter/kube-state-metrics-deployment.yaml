@@ -27,6 +27,8 @@ spec:
       containers:
       - name: kube-state-metrics
         image: {{ template "vessl.image.source" . -}}/kube-state-metrics:{{- .Values.metricsExporters.kubeStateMetrics.imageVersion }}
+        args:
+        - --metric-labels-allowlist=pods=[*],deployments=[*],statefulsets=[*],jobs=[*],daemonsets=[*]
         ports:
         - name: metrics
           containerPort: 8080

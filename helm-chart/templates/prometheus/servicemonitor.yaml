@@ -126,5 +126,5 @@ spec:
     any: true
   selector:
     matchLabels:
-      v1.k8s.vessl.ai/type: model-service-revision-exporter
+      v1.k8s.vessl.ai/serving-metrics-enabled: true
 {{- end -}}

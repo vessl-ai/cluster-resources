@@ -110,7 +110,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    prometheus: vessl-prometheu
+    prometheus: vessl-prometheus
   name: vessl-model-service-servicemonitor
 spec:
   endpoints:

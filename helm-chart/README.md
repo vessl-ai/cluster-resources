@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v0.1.39 (2023-04-26)
+- Upgrade apiVersion of PodDisruptionBudget from policy/v1beta to policy/v1
+
 ### v0.1.38 (2023-04-04)
 - User can use `simpleRegistry` option instead of `harbor` option in some specific case.
 

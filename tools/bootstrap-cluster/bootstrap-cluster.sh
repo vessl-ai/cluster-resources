@@ -262,6 +262,7 @@ if _command_exists nvidia-container-toolkit; then
   fi
   cat <<-EOF | sudo tee /etc/docker/daemon.json
 {
+    "exec-opts": ["native.cgroupdriver=systemd"],
     "default-runtime": "nvidia",
     "live-restore": true,
     "runtimes": {
@@ -357,7 +358,7 @@ if [ "$K0S_ROLE" == "controller" ]; then
   sudo $k0s_executable install controller -c $k0s_config_path/k0s.yaml \
     --enable-worker ${no_taint_option:+"--no-taints"} \
     --cri-socket=docker:unix:///var/run/docker.sock \
-    --kubelet-extra-args="--network-plugin=cni"
+    --kubelet-extra-args="--cgroup-driver=systemd --network-plugin=cni"
 elif [ "$K0S_ROLE" == "worker" ]; then
   if [ "$K0S_JOIN_TOKEN" == "" ]; then
     abort "ERROR: cluster join token is not set.\nPlease set --token option to join the cluster."
@@ -366,7 +367,7 @@ elif [ "$K0S_ROLE" == "worker" ]; then
   sudo $k0s_executable install worker \
     --token-file $k0s_config_path/token \
     --cri-socket=docker:unix:///var/run/docker.sock \
-    --kubelet-extra-args="--network-plugin=cni"
+    --kubelet-extra-args="--cgroup-driver=systemd --network-plugin=cni"
 fi
 
 bold "Running k0s as $K0S_ROLE"

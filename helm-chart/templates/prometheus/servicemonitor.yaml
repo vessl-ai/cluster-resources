@@ -53,6 +53,13 @@ spec:
       action: replace
     - regex: '^instance$'
       action: labeldrop
+    - action: labelkeep
+      regex: ^(pod|namespace|(.*)_vessl_ai_(.*)|__(.+)__)$
+    - action: labelmap
+      regex: label_(.+)_k8s_vessl_ai_(.+)
+      replacement: '${1}_k8s_vessl_ai_${2}'
+    - action: labeldrop
+      regex: label_(.*)
     relabelings:
     - regex: feature_node_kubernetes_io_(.+)
       action: labeldrop
@@ -98,4 +105,26 @@ spec:
   selector:
     matchLabels:
       v1.k8s.vessl.ai/type: node-exporter
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    prometheus: vessl-prometheus
+  name: vessl-model-service-servicemonitor
+spec:
+  endpoints:
+  - path: /metrics
+    port: metrics
+    honorLabels: true
+    metricRelabelings:
+    - sourceLabels:
+        - __name__
+      regex: '(bentoml_(.+)|BENTOML_(.+)|nv_(.+)|)' # bentoml, BENTOML are offered by bento, nv is offered by triton-inference-server, 
+      action: keep
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      v1.k8s.vessl.ai/serving-metrics-enabled: true
 {{- end -}}

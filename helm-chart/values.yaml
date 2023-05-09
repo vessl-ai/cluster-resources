@@ -31,6 +31,19 @@ nvidia-device-plugin:
       repository: quay.io/vessl-ai/gpu-feature-discovery
       tag: v0.6.2
 
+# GKE has it's own standalone nvidia-device-plugin, but has no nfd & gfd
+# Do not enable subcharts of nvidia-device-plugin when using this
+nfd:
+  enabled: false
+  image:
+    repository: quay.io/vessl-ai/node-feature-discovery
+    tag: v0.11.0
+gfd:
+  enabled: false
+  image:
+    repository: quay.io/vessl-ai/gpu-feature-discovery
+    tag: v0.6.2
+
 localPathProvisioner:
   enabled: true
   hostPath: /opt/local-path-provisioner
@@ -54,6 +67,8 @@ metricsExporters:
 tolerations:
   - key: CriticalAddonsOnly
     operator: Exists
+  - key: nvidia.com/gpu
+    operator: Exists
 
 harbor:
   enabled: false
@@ -64,8 +79,16 @@ harbor:
   databasePassword: changeme2
   clusterIP: # @XXX: consult with vessl team if you are going to use client-side harbor
 
+simpleRegistry: # @XXX: this section is not intended to use in common cases of integration.
+  enabled: false
+  storageClassName:
+  nodeSelector: {}
+  clusterIP:
+
 prometheus:
   enabled: true
+  standalone: false
+  image: quay.io/prometheus/prometheus:v2.37.0
   remoteWriteURL: https://remote-write-gateway.vessl.ai/remote-write
   nodeSelector: {}
   tolerations: []

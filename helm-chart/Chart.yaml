@@ -1,6 +1,6 @@
 apiVersion: v2
 name: cluster-resources
-version: 0.1.34
+version: 0.1.39
 dependencies:
 - name: kube-prometheus-stack
   version: "39.10.0"
@@ -10,3 +10,8 @@ dependencies:
   version: "0.12.3"
   repository: https://nvidia.github.io/k8s-device-plugin
   condition: nvidia-device-plugin.enabled
+- name: node-feature-discovery
+  alias: nfd
+  version: "0.11.0"
+  condition: nfd.enabled
+  repository: https://kubernetes-sigs.github.io/node-feature-discovery/charts

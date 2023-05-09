@@ -17,7 +17,7 @@ spec:
   alerting:
     alertmanagers:
       []
-  image: "quay.io/prometheus/prometheus:v2.37.0"
+  image: {{ .Values.prometheus.image }}
   version: v2.37.0
   externalUrl: ""
   paused: false
@@ -29,6 +29,7 @@ spec:
   enableAdminAPI: false
   retention: "10d"
   routePrefix: "/"
+  {{- if not .Values.prometheus.standalone }}
   remoteWrite:
     - name: vessl-remote-write
       url: {{ .Values.prometheus.remoteWriteURL }}
@@ -44,6 +45,7 @@ spec:
           regex: label_feature_node_kubernetes_io_(.+)
         - action: labeldrop
           regex: minikube_(.+)
+  {{- end }}
   serviceAccountName: vessl-prometheus
   serviceMonitorSelector:
     matchLabels:

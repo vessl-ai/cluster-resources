@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v0.1.40 (2023-05-31)
+- Bump up cluster-agent to 0.6.14
+
 ### v0.1.39 (2023-04-26)
 - Upgrade apiVersion of PodDisruptionBudget from policy/v1beta to policy/v1
 

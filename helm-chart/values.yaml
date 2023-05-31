@@ -9,7 +9,7 @@ agent:
   apiServer: https://api.vessl.ai
   logLevel: info
   env: prod
-  imageVersion: "0.6.8"
+  imageVersion: "0.6.14"
   sentryDsn: https://0481c31171114c109ac911ac947f0518@o386227.ingest.sentry.io/5585090
   containerLogPath: /var/lib/docker/containers
   containerLogFormat: json

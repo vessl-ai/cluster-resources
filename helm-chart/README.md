@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v0.1.41 (2023-05-31)
+- Fix ServiceMonitor using non-string value for `matchLabels` field
+
 ### v0.1.40 (2023-05-31)
 - Bump up cluster-agent to 0.6.14
 

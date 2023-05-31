@@ -120,11 +120,11 @@ spec:
     metricRelabelings:
     - sourceLabels:
         - __name__
-      regex: '(bentoml_(.+)|BENTOML_(.+)|nv_(.+)|)' # bentoml, BENTOML are offered by bento, nv is offered by triton-inference-server, 
+      regex: '(bentoml_(.+)|BENTOML_(.+)|nv_(.+)|)' # bentoml, BENTOML are offered by bento, nv is offered by triton-inference-server,
       action: keep
   namespaceSelector:
     any: true
   selector:
     matchLabels:
-      v1.k8s.vessl.ai/serving-metrics-enabled: true
+      v1.k8s.vessl.ai/serving-metrics-enabled: "true"
 {{- end -}}

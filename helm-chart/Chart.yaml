@@ -1,6 +1,6 @@
 apiVersion: v2
 name: cluster-resources
-version: 0.1.40
+version: 0.1.41
 dependencies:
 - name: kube-prometheus-stack
   version: "39.10.0"

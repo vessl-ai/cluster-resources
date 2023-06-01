@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v0.1.42 (2023-06-01)
+- Do not drop `kube_pod_labels` on kube-state-metrics-servicemonitor
+
 ### v0.1.41 (2023-05-31)
 - Fix ServiceMonitor using non-string value for `matchLabels` field
 

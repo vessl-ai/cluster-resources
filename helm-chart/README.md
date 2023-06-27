@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v0.1.43 (2023-06-27)
+- Delete unused resources and values
+
 ### v0.1.42 (2023-06-01)
 - Do not drop `kube_pod_labels` on kube-state-metrics-servicemonitor
 

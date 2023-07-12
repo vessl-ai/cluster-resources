@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v0.1.44 (2023-07-12)
+- Bump agent version to 0.6.15
+
 ### v0.1.43 (2023-06-27)
 - Delete unused resources and values
 

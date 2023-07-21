@@ -1,7 +1,7 @@
 require 'yaml'
 old_yaml = YAML.load_file("old.yaml")
 
-latest_version = "0.5.16"
+latest_version = "0.6.15"
 new_yaml = {}
 
 if old_yaml["harbor"] && old_yaml["harbor"]["enabled"]

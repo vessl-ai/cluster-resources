@@ -41,19 +41,17 @@ spec:
     port: metrics
     honorLabels: true
     metricRelabelings:
-    - sourceLabels:
-        - __name__
-      regex: '(kube_pod_container_resource_requests|kube_pod_container_resource_limits|kube_pod_labels|kube_node_status_capacity|kube_node_status_allocatable|kube_persistentvolume_(.+)|kube_persistentvolumeclaim_(.+)|kube_pod_status_phase|kube_pod_info)'
-      action: keep
-    - sourceLabels: [node]
-      separator: ;
+    - action: keep
+      regex: (kube_pod_container_resource_requests|kube_pod_container_resource_limits|kube_pod_labels|kube_node_status_capacity|kube_node_status_allocatable|kube_persistentvolume_(.+)|kube_persistentvolumeclaim_(.+)|kube_pod_status_phase|kube_pod_info)
+      sourceLabels:
+      - __name__
+    - action: replace
       regex: ^(.*)$
-      targetLabel: nodename
       replacement: $1
-      action: replace
-    - action: labelmap
-      regex: label_(.+)_k8s_vessl_ai_(.+)
-      replacement: '${1}_k8s_vessl_ai_${2}'
+      separator: ;
+      sourceLabels:
+      - node
+      targetLabel: nodename
     - action: labelkeep
       regex: ^(pod|namespace|(.*)_vessl_ai_(.*)|__(.+)__|nodename|node|resource|phase|(.+)_k8s_vessl_ai_(.+))$
     relabelings:

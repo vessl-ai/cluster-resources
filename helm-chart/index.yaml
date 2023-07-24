@@ -2,27 +2,6 @@ apiVersion: v1
 entries:
   cluster-resources:
   - apiVersion: v2
-    created: "2023-07-24T20:25:21.888637+09:00"
-    dependencies:
-    - condition: prometheus.enabled
-      name: kube-prometheus-stack
-      repository: https://prometheus-community.github.io/helm-charts
-      version: 39.10.0
-    - condition: nvidia-device-plugin.enabled
-      name: nvidia-device-plugin
-      repository: https://nvidia.github.io/k8s-device-plugin
-      version: 0.12.3
-    - alias: nfd
-      condition: nfd.enabled
-      name: node-feature-discovery
-      repository: https://kubernetes-sigs.github.io/node-feature-discovery/charts
-      version: 0.11.0
-    digest: 6193eede37f7f658af3e327502fecd12e471f1fe0c7daab41393651132305a78
-    name: cluster-resources
-    urls:
-    - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/cluster-resources-0.1.45.tgz
-    version: 0.1.45
-  - apiVersion: v2
     created: "2023-07-12T22:52:02.11305+09:00"
     dependencies:
     - condition: prometheus.enabled
@@ -598,7 +577,7 @@ entries:
       artifacthub.io/operator: "true"
     apiVersion: v2
     appVersion: 0.58.0
-    created: "2023-07-24T20:25:21.911516+09:00"
+    created: "2023-07-12T22:52:02.131703+09:00"
     dependencies:
     - condition: kubeStateMetrics.enabled
       name: kube-state-metrics
@@ -650,7 +629,7 @@ entries:
   node-feature-discovery:
   - apiVersion: v2
     appVersion: v0.11.0
-    created: "2023-07-24T20:25:21.912486+09:00"
+    created: "2023-07-12T22:52:02.1326+09:00"
     description: 'Detects hardware features available on each node in a Kubernetes
       cluster, and advertises those features using node labels. '
     digest: 76622631aeb287b26f4c57ca5d3f8ab76571bbb1473b276227bf769cb40b9318
@@ -669,7 +648,7 @@ entries:
   nvidia-device-plugin:
   - apiVersion: v2
     appVersion: 0.12.3
-    created: "2023-07-24T20:25:21.914117+09:00"
+    created: "2023-07-12T22:52:02.134159+09:00"
     dependencies:
     - alias: nfd
       condition: nfd.enabled,gfd.enabled
@@ -690,4 +669,4 @@ entries:
     urls:
     - https://vessl-helm-packages.s3.ap-northeast-2.amazonaws.com/cluster-resources/charts/nvidia-device-plugin-0.12.3.tgz
     version: 0.12.3
-generated: "2023-07-24T20:25:21.859458+09:00"
+generated: "2023-07-12T22:52:02.089348+09:00"

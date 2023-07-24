@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v0.1.44 (2023-07-24)
+- Keep important labels
+
 ### v0.1.44 (2023-07-12)
 - Bump agent version to 0.6.15
 

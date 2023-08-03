@@ -236,7 +236,7 @@ ensure_nvidia_gpu_dependencies() {
   fi
 }
 
-enforce_nvidia_device_visibility_to_volume_mounts() {
+ensure_nvidia_device_volume_mounts() {
   # To prevent unprivileged container access all host GPUs, Set accept-nvidia-visible-devices-envvar-when-unprivileged=false
   # VESSL will only allow GPU access by volume mounts by setting accept-nvidia-visible-devices-as-volume-mounts=true
   # See also: https://docs.google.com/document/d/1zy0key-EL6JH50MZgwg96RPYxxXXnVUdxLZwGiyqLd8/edit
@@ -345,7 +345,7 @@ wait_for_k0s_daemon() {
   fi
 }
 
-change_k0s_containerd_runtime_to_nvidia_container_runtime() {
+ensure_k0s_nvidia_container_runtime() {
   if [ ! -f /etc/k0s/containerd.toml ]; then
     bold "k0s containerd config file not found; skipping changing containerd runtime to nvidia-container-runtime."
     return
@@ -404,11 +404,11 @@ print_bootstrap_complete_instruction() {
 ensure_lshw_command
 ensure_hostname_lowercase
 ensure_nvidia_gpu_dependencies
-enforce_nvidia_device_visibility_to_volume_mounts
+ensure_nvidia_device_volume_mounts
 install_k0s
 ensure_no_existing_k0s_running
 run_k0s_daemon
 wait_for_k0s_daemon
-change_k0s_containerd_runtime_to_nvidia_container_runtime
+ensure_k0s_nvidia_container_runtime
 # TODO: Verify containerd in k0s can run GPU container using `k0s ctr` command
 print_bootstrap_complete_instruction

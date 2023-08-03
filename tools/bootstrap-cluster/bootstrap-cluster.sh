@@ -28,21 +28,24 @@ set -u
 # Environment variables and flags
 # -------------------------------
 
-SUPPORTED_LINUX_OS_DIST="Ubuntu 16.04+, Centos 7.9+"
-K0S_VERSION="v1.23.8+k0s.0"
+K0S_EXECUTABLE="/usr/local/bin/k0s" # See https://get.k0s.sh/ to see where this is located (k0sInstallPath)
+K0S_CONFIG_PATH="/opt/vessl/k0s"
+K0S_VERSION="v1.25.12+k0s.0"
 K0S_ROLE=""
 K0S_JOIN_TOKEN=""
 K0S_TAINT_CONTROLLER="false"
+SKIP_NVIDIA_GPU_DEPENDENCIES="false"
 
 print_help() {
   echo "usage: $0 [options]"
   echo "Bootstraps a node into an k8s cluster connectable to VESSL"
   echo ""
-  echo "-h,--help           print this help"
-  echo "--role=[ROLE]       node's role in the cluster (controller or worker)"
-  echo "--taint-controller  Use control plane nodes only dedicated to node management"
-  echo "                    In default, control plane nodes are also used for running workloads"
-  echo "--token=[TOKEN]     token to join k0s cluster; necessary when --role=worker."
+  echo "-h,--help                       print this help"
+  echo "--role=[ROLE]                   node's role in the cluster (controller or worker)"
+  echo "--taint-controller              Use control plane nodes only dedicated to node management"
+  echo "                                In default, control plane nodes are also used for running workloads"
+  echo "--skip-nvidia-gpu-dependencies  Do not abort script when NVIDIA GPU dependencies are not installed"
+  echo "--token=[TOKEN]                 token to join k0s cluster; necessary when --role=worker."
 }
 
 while [[ $# -gt 0 ]]; do
@@ -58,6 +61,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --taint-controller)
       K0S_TAINT_CONTROLLER="true"
+      shift
+      ;;
+    --skip-nvidia-gpu-dependencies)
+      SKIP_NVIDIA_GPU_DEPENDENCIES="true"
       shift
       ;;
     --token*)
@@ -115,8 +122,7 @@ _cuda_version() {
 
 _detect_os() {
   if [ ! -f /etc/os-release ]; then
-    printf 'ERROR: Failed to get OS information.\nVESSL cluster bootstrapper currently supports following OS: %s.\n' "$SUPPORTED_LINUX_OS_DIST" 1>&2
-    return 1
+    abort "ERROR: Failed to get OS information.\nVESSL cluster bootstrapper currently supports following OS: Ubuntu 20.04+, Centos 7.9+.\n"
   fi
   # shellcheck source=/dev/null
   os=$(. /etc/os-release; echo "$ID" | tr "[:upper:]" "[:lower:]")
@@ -128,7 +134,7 @@ _detect_os() {
       echo "centos"
       ;;
     *)
-      printf 'ERROR: Unsupported operating system: %s.\nVESSL cluster bootstrapper currently supports following OS: %s.\n' "$os" "$SUPPORTED_LINUX_OS_DIST" 1>&2
+      printf 'ERROR: Unsupported operating system: %s.\nVESSL cluster bootstrapper currently supports following OS: Ubuntu 20.04+, Centos 7.9+.\n' "$os" 1>&2
       return 1
       ;;
   esac
@@ -155,130 +161,86 @@ _detect_arch() {
   unset arch
 }
 
-# -------------------------
-# Install and enable Docker
-# -------------------------
-if ! _command_exists docker; then
-  bold "Command 'docker' not found, installing Docker"
-  docker_script_path=$(mktemp)
-  curl -fsSL get.docker.com -o "${docker_script_path}"
-  sudo sh "${docker_script_path}"
-  sudo rm -f "${docker_script_path}"
-  unset docker_script_path
-
-  bold "Adding user to Docker usergroup"
-  if ! getent group docker > /dev/null; then
-    sudo groupadd docker
-    newgrp docker
+_print_nvidia_dependency_error() {
+  if SKIP_NVIDIA_GPU_DEPENDENCIES != "true"; then
+    abort "ERROR: $*"
   else
-    sudo usermod -aG docker "$(whoami)"
+    bold "WARNING: $*"
+    bold "Running with --skip-nvidia-gpu-dependencies; Skipping NVIDIA GPU dependencies check."
   fi
-fi
-
-bold "Enabling Docker daemon"
-sudo systemctl --now enable docker
-
-# ----------------------------------------------------------------------------------------------
-# Install NVIDIA Container Toolkit
-# FWIW: differences between packages provided by NVIDIA
-#  * libnvidia-container: library for let containers run with NVIDIA GPU support
-#  * nvidia-container-toolkit: implements the interface required by a runC prestart hook
-#  * nvidia-container-runtime: thin wrapper around the native runC with NVIDIA specific code
-#  * nvidia-docker2: package for GPU support to Docker containers using nvidia-container-runtime
-# i.e. nvidia-docker2 will let machine run GPU containers with k8s + Docker
-# https://github.com/NVIDIA/nvidia-docker/issues/1268#issuecomment-632692949
-# https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/arch-overview.html
-# ----------------------------------------------------------------------------------------------
-if ! _command_exists nvidia-smi; then
-  bold "NVIDIA Driver not found in the node (Node does not have GPU?), skipping nvidia-docker2 installation."
-  bold "Please reach out to support@vessl.ai if you need technical support for non-NVIDIA accelerators."
-else
-  if ! _command_exists nvcc; then
-    bold "NVIDIA Driver exists in the node but nvcc not found - installing nvidia-cuda-toolkit"
-    sudo apt-get install -y nvidia-cuda-toolkit
-  fi
-  if ! _command_exists nvidia-container-toolkit; then
-    bold "NVIDIA Driver exists in the node but NVIDIA Container Toolkit not found - Installing nvidia-docker2"
-    os="$(_detect_os)"
-    case "$os" in
-      ubuntu)
-        if [ -n "$(find /etc/apt/sources.list.d -name '*nvidia*' | head -1)" ]; then
-          bold "Moving existing nvidia-docker source repository targets to /tmp/apt-sources-nvidia-docker"
-          sudo mkdir -p /tmp/apt-sources-nvidia-docker
-          sudo mv -v /etc/apt/sources.list.d/*nvidia* /tmp/apt-sources-nvidia-docker
-        fi
-
-        bold "Setting up nvidia-container-toolkit repository and GPG key"
-        # shellcheck source=/dev/null
-        distribution=$(. /etc/os-release; echo "$ID""$VERSION_ID" | tr "[:upper:]" "[:lower:]")
-        curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-        curl -sL https://nvidia.github.io/libnvidia-container/"$distribution"/libnvidia-container.list | \
-          sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-          sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-
-        bold "Updating public keys for nvidia-container-toolkit repositories"
-        # GPG keys for nvidia-container-toolkit repositories: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation-network
-        # GPG keys for DGX machines https://docs.nvidia.com/dgx/dgx-os-release-notes/index.html#rotating-gpg-keys
-        sudo apt-key del 7fa2af80
-        nvidia_keyring_path=$(mktemp)
-        curl -fsSL "https://developer.download.nvidia.com/compute/cuda/repos/${distribution//.}/$(uname -m)/cuda-keyring_1.0-1_all.deb" -o "${nvidia_keyring_path}"
-        sudo dpkg --force-confold -i "${nvidia_keyring_path}"
-        sudo rm -f "${nvidia_keyring_path}"
-        unset nvidia_keyring_path
-        sudo apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/${distribution//.}/$(uname -m)/3bf863cc.pub"
-        sudo apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/machine-learning/repos/${distribution//.}/$(uname -m)/7fa2af80.pub"
-        sudo apt-get update
-
-        bold "Installing nvidia-docker"
-        sudo apt-get install -y nvidia-docker2
-        ;;
-      centos)
-        bold "Setting up nvidia-container-toolkit repository and GPG key"
-        # shellcheck source=/dev/null
-        distribution=$(. /etc/os-release; echo "$ID$VERSION_ID") \
-          && curl -s -L https://nvidia.github.io/libnvidia-container/"$distribution"/libnvidia-container.repo | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
-
-        bold "Installing nvidia-docker"
-        centos_major_version="$(< /etc/centos-release tr -dc '0-9)')"
-        if [ "$centos_major_version" == "7" ]; then
-          sudo yum clean expire-cache
-          sudo yum install -y nvidia-docker2
-        else
-          sudo dnf clean expire-cache --refresh
-          sudo dnf install -y nvidia-docker2
-        fi
-        unset centos_major_version
-        ;;
-    esac
-  fi
-  bold "NVIDIA Driver, CUDA toolkit and Container Toolkit has installed"
-fi
-
-if _command_exists nvidia-container-toolkit; then
-  bold "Updating Docker runtime to nvidia-container-runtime"
-  if [ -f /etc/docker/daemon.json ]; then
-    bold "Found existing /etc/docker/daemon.json, backing up to /etc/docker/daemon.json.bak"
-    sudo mv -v /etc/docker/daemon.json /etc/docker/daemon.json.bak
-  fi
-  cat <<-EOF | sudo tee /etc/docker/daemon.json
-{
-    "exec-opts": ["native.cgroupdriver=systemd"],
-    "default-runtime": "nvidia",
-    "live-restore": true,
-    "runtimes": {
-        "nvidia": {
-            "path": "nvidia-container-runtime",
-            "runtimeArgs": []
-        }
-    }
 }
-EOF
 
-  # Update /etc/nvidia-container-runtime/config.toml
+# ----------
+# Main logic
+# ----------
+
+ensure_lshw_command() {
+  if ! _command_exists lshw; then
+    bold "Installing lshw..."
+    if [ "$(_detect_os)" = "ubuntu" ]; then
+      sudo apt-get install -y lshw
+    elif [ "$(_detect_os)" = "centos" ]; then
+      sudo yum install -y lshw
+    fi
+  fi
+}
+
+ensure_hostname_lowercase() {
+  [[ $(hostname)  =~ [A-Z] ]] && abort "Machine's hostname '$(hostname)' contains uppercase characters. Please set hostname to lowercase to make k8s cluster working."
+}
+
+ensure_nvidia_gpu_dependencies() {
+  # Install NVIDIA Container Toolkit
+  # FWIW: differences between packages provided by NVIDIA
+  #  * libnvidia-container: library for let containers run with NVIDIA GPU support
+  #  * nvidia-container-toolkit: implements the interface required by a runC prestart hook
+  #  * nvidia-container-runtime: thin wrapper around the native runC with NVIDIA specific code
+  # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/arch-overview.html
+  bold "Checking NVIDIA GPU dependencies..."
+
+  # Check if NVIDIA GPU is available
+  if sudo lshw -C display | grep -q "vendor: NVIDIA"; then
+    bold "NVIDIA GPU not found in the system; skipping NVIDIA GPU dependencies check."
+    bold "Please reach out to support@vessl.ai if you need technical support for non-NVIDIA accelerators."
+    return 0
+  fi
+
+  # Check if nvidia-driver has been installed
+  if ! _command_exists nvidia-smi; then
+    _print_nvidia_dependency_error "NVIDIA driver not found. Please install NVIDIA driver first."
+  fi
+
+  if ! _command_exists nvcc; then
+    _print_nvidia_dependency_error "nvidia-cuda-toolkit not found.\nRun following command to install nvidia-cuda-toolkit:\n  sudo apt-get install -y nvidia-cuda-toolkit"
+  fi
+
+  if ! _command_exists nvidia-container-toolkit; then
+    # shellcheck disable=SC1091
+    nvidia_toolkit_command="\n
+      distribution=$(. /etc/os-release;echo \$ID\$VERSION_ID) \\\n
+        && curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo apt-key add - \\\n
+        && curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list \n
+      sudo apt-get install -y nvidia-container-toolkit"
+    # shellcheck disable=SC1091
+    if [ "$(_detect_os)" = "centos" ]; then
+      nvidia_toolkit_command="\n
+        distribution=$(. /etc/os-release;echo \$ID\$VERSION_ID) \\\n
+          && curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.repo | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo \n
+        sudo dnf clean expire-cache && sudo dnf install -y nvidia-container-toolkit"
+    fi
+    _print_nvidia_dependency_error "nvidia-container-toolkit not found.\nRun following command to install nvidia-container-toolkit:\n$nvidia_toolkit_command"
+  fi
+}
+
+enforce_nvidia_device_visibility_to_volume_mounts() {
   # To prevent unprivileged container access all host GPUs, Set accept-nvidia-visible-devices-envvar-when-unprivileged=false
   # VESSL will only allow GPU access by volume mounts by setting accept-nvidia-visible-devices-as-volume-mounts=true
   # See also: https://docs.google.com/document/d/1zy0key-EL6JH50MZgwg96RPYxxXXnVUdxLZwGiyqLd8/edit
-  bold "Setting NVIDIA device device visibility method as volume mounts"
+  bold "Setting NVIDIA GPU device visibility method as volume mounts"
+  if ! _command_exists nvidia-container-runtime; then
+    bold "nvidia-container-runtime not found; skipping setting NVIDIA GPU device visibility."
+    return
+  fi
   cat << EOF > /etc/nvidia-container-runtime/config.toml
 disable-require = false
 #swarm-resource = "DOCKER_RESOURCE_GPU"
@@ -299,124 +261,143 @@ ldconfig = "@/sbin/ldconfig.real"
 [nvidia-container-runtime]
 #debug = "/var/log/nvidia-container-runtime.log"
 EOF
+}
 
-  bold "Restarting Docker daemon"
-  sudo systemctl restart docker
-
-  bold "Verifying nvidia-docker2 is working correctly"
-
-  cuda_major_version="$(_cuda_version | cut -d '.' -f 1)"
-  cuda_image_tag="10.2-base-ubuntu18.04"
-  if [ "$cuda_major_version" == "7" ]; then
-    cuda_image_tag="7.0-runtime-centos7"
-  elif [ "$cuda_major_version" == "9" ]; then
-    cuda_image_tag="9.0-base-ubuntu16.04"
-  elif [ "$cuda_major_version" == "11" ]; then
-    cuda_image_tag="11.2.0-base-ubuntu18.04"
+install_k0s() {
+  if ! _command_exists k0s; then
+    bold "k0s (portable Kubernetes runtime) not found in the node. Installing k0s $K0S_VERSION"
+    curl -sSLf https://get.k0s.sh | sudo K0S_VERSION="$K0S_VERSION" sh
   fi
+}
 
-  set +e
-  bold "Running CUDA container: nvidia/cuda:$cuda_image_tag"
-  if ! sudo docker run --privileged --gpus all "nvidia/cuda:$cuda_image_tag" nvidia-smi; then
-    bold "WARN: nvidia-docker is not working correctly. If the problem persists after retry, please reach out support@vessl.ai for technical support."
+ensure_no_existing_k0s_running() {
+  bold "Checking if there is existing k0s running"
+  if sudo $K0S_EXECUTABLE status 2&> /dev/null; then
+    existing_k0s_role="$(k0s status | grep "Role" | awk -F': ' '{print $2}')"
+    abort "ERROR: k0s is already running as $existing_k0s_role.\nIf you want to reset the cluster, run 'sudo k0s stop && sudo k0s reset' before retrying the script."
   fi
-  set -e
-  unset cuda_image_tag
-  unset cuda_major_version
-  unset test_container_ubuntu_version
-fi
+}
 
-# -----------
-# Install k0s
-# -----------
-if ! _command_exists k0s; then
-  bold "k0s (portable Kubernetes runtime) not found in the node. Installing k0s $K0S_VERSION"
-  curl -sSLf https://get.k0s.sh | sudo K0S_VERSION="$K0S_VERSION" sh
-fi
-
-# -------
-# Run k0s
-# -------
-bold "Checking if there is existing k0s running"
-k0s_executable="/usr/local/bin/k0s" # See https://get.k0s.sh/ to see where this is located (k0sInstallPath)
-if sudo $k0s_executable status 2&> /dev/null; then
-  k0s_role="$(k0s status | grep "Role" | awk -F': ' '{print $2}')"
-  abort "ERROR: k0s is already running as $k0s_role.\nIf you want to reset the cluster, run 'sudo k0s stop && sudo k0s reset' before retrying the script."
-fi
-
-bold "Running k0s as $K0S_ROLE"
-k0s_config_path="/opt/vessl/k0s"
-bold "Writing k0s cluster configuration to $k0s_config_path"
-sudo mkdir -p $k0s_config_path
-
-if [ "$K0S_ROLE" == "controller" ]; then
+install_k0s_controller() {
+  bold "Installing k0scontroller.service on systemd"
   no_taint_option=""
   [[ "$K0S_TAINT_CONTROLLER" == "false" ]] && no_taint_option="--no-taints"
-  sudo $k0s_executable config create | sudo tee $k0s_config_path/k0s.yaml
-  sudo sed -i -e 's/provider: kuberouter/provider: calico/g' $k0s_config_path/k0s.yaml
 
-  sudo $k0s_executable install controller -c $k0s_config_path/k0s.yaml \
-    --enable-worker ${no_taint_option:+"--no-taints"} \
-    --cri-socket=docker:unix:///var/run/docker.sock \
-    --kubelet-extra-args="--cgroup-driver=systemd --network-plugin=cni"
-elif [ "$K0S_ROLE" == "worker" ]; then
+  sudo $K0S_EXECUTABLE config create | sudo tee $K0S_CONFIG_PATH/k0s.yaml
+  sudo sed -i -e 's/provider: kuberouter/provider: calico/g' $K0S_CONFIG_PATH/k0s.yaml
+
+  sudo $K0S_EXECUTABLE install controller -c $K0S_CONFIG_PATH/k0s.yaml \
+    ${no_taint_option:+"--no-taints"} \
+    --enable-worker \
+    --enable-cloud-provider \
+    --enable-k0s-cloud-provider=true
+
+  bold "Starting k0scontroller.service"
+  sudo $K0S_EXECUTABLE start
+}
+
+install_k0s_worker() {
+  bold "Installing k0sworker.service on systemd"
+
   if [ "$K0S_JOIN_TOKEN" == "" ]; then
     abort "ERROR: cluster join token is not set.\nPlease set --token option to join the cluster."
   fi
-  echo "$K0S_JOIN_TOKEN" | sudo tee $k0s_config_path/token
-  sudo $k0s_executable install worker \
-    --token-file $k0s_config_path/token \
-    --cri-socket=docker:unix:///var/run/docker.sock \
-    --kubelet-extra-args="--cgroup-driver=systemd --network-plugin=cni"
-fi
+  echo "$K0S_JOIN_TOKEN" | sudo tee $K0S_CONFIG_PATH/token
+  sudo $K0S_EXECUTABLE install worker \
+    --token-file $K0S_CONFIG_PATH/token \
+    --enable-cloud-provider
 
-bold "Running k0s as $K0S_ROLE"
-sudo $k0s_executable start
+  bold "Starting k0sworker.service"
+  sudo $K0S_EXECUTABLE start
+}
 
-# ------------------
-# Verify k0s working
-# ------------------
-bold "Waiting for k0s $K0S_ROLE to be up and running"
-sleep 3
-count=0
-until sudo systemctl is-active --quiet "k0s$K0S_ROLE" || [[ $count -eq 10 ]]; do
-  (( count++ ))
-  echo -e "...\c"
+run_k0s() {
+  bold "Writing k0s cluster configuration to $K0S_CONFIG_PATH"
+  sudo mkdir -p "$K0S_CONFIG_PATH"
+  if [ "$K0S_ROLE" == "controller" ]; then
+    install_k0s_controller
+  elif [ "$K0S_ROLE" == "worker" ]; then
+    install_k0s_worker
+  fi
+}
+
+wait_for_k0s_daemon() {
+  bold "Waiting for k0s $K0S_ROLE to be up and running"
   sleep 3
-done
-if [[ $count -eq 10 ]]; then
-  sudo systemctl status "k0s$K0S_ROLE" --no-pager -l
-  bold "ERROR: k0s $K0S_ROLE failed to start. Please check error logs using 'journalctl -u k0s$K0S_ROLE.service'."
-  bold "If the problem persists after retry, please reach out support@vessl.ai for technical support."
-  abort ""
-fi
+  count=0
+  until sudo systemctl is-active --quiet "k0s$K0S_ROLE" || [[ $count -eq 10 ]]; do
+    (( count++ ))
+    echo -e "...\c"
+    sleep 3
+  done
+  if [[ $count -eq 10 ]]; then
+    sudo systemctl status "k0s$K0S_ROLE" --no-pager -l
+    bold "ERROR: k0s $K0S_ROLE failed to start. Please check error logs using 'journalctl -xeu k0s$K0S_ROLE.service --no-pager'."
+    bold "If the problem persists after retry, please reach out support@vessl.ai for technical support."
+    abort ""
+  fi
+}
 
-if [ "$K0S_ROLE" == "controller" ]; then
-  bold "Granting access to admin kubeconfig to current user"
-  sudo chmod +r /var/lib/k0s/pki/admin.conf
-fi
+change_k0s_containerd_runtime_to_nvidia_container_runtime() {
+  if [ ! -f /etc/k0s/containerd.toml ]; then
+    bold "k0s containerd config file not found; skipping changing containerd runtime to nvidia-container-runtime."
+    return
+  fi
+  if ! _command_exists nvidia-container-runtime; then
+    bold "nvidia-container-runtime not found; skipping changing containerd runtime to nvidia-container-runtime."
+    return
+  fi
 
-# ------------
-# Install Helm
-# ------------
+  cat <<EOT >> /etc/k0s/containerd.toml
+[plugins."io.containerd.grpc.v1.cri".containerd.default_runtime]
+  runtime_type = "io.containerd.runtime.v1.linux"
+  runtime_engine = ""
+  runtime_root = ""
+  privileged_without_host_devices = false
+  base_runtime_spec = ""
+    [plugins."io.containerd.grpc.v1.cri".containerd.default_runtime.options]
+      Runtime = "nvidia-container-runtime"
+    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
+    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvdia]
+      runtime_type = "io.containerd.runtime.v1.linux"
+      runtime_engine = ""
+      runtime_root = ""
+      privileged_without_host_devices = false
+      base_runtime_spec = ""
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvdia.options]
+          Runtime = "nvidia-container-runtime"
+EOT
+}
 
-if [ "$K0S_ROLE" == "controller" ] && ! _command_exists helm; then
-  bold "Helm not found in the node. Installing Helm"
-  curl -sSLf https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-fi
+print_bootstrap_complete_instruction() {
+  bold "-------------------\nBootstrap complete!\n-------------------\n"
+  if [ "$K0S_ROLE" == "controller" ]; then
+    k0s_token=$(sudo "$K0S_EXECUTABLE" token create --role=worker)
+    bold "Node is configured as a control plane node."
+    bold "To join other nodes to the cluster, run the following command on the worker node:"
+    bold ""
+    bold "  curl -sSLf https://install.dev.vssl.ai | sudo bash -s -- --role=worker --token='$k0s_token'"
+    bold ""
+    bold "To get Kubernetes admin's kubeconfig file, run the following command on the control plane node:"
+    bold "  $K0S_EXECUTABLE kubeconfig admin"
+    unset k0s_token
+  elif [ "$K0S_ROLE" == "worker" ]; then
+    bold "Node is configured as a worker node and joined the cluster.\n"
+  fi
+}
 
-bold "-------------------\nBootstrap complete!\n-------------------\n"
-if [ "$K0S_ROLE" == "controller" ]; then
-  k0s_token=$(sudo $k0s_executable token create --role=worker)
-  bold "Node is configured as a control plane node."
-  bold "To join other nodes to the cluster, run the following command on the worker node:"
-  bold ""
-  bold "  curl -sSLf https://install.dev.vssl.ai | sudo bash -s -- --role=worker --token='$k0s_token'"
-  bold ""
-  bold "To get Kubernetes admin's kubeconfig file, run the following command on the control plane node:"
-  bold "  /usr/local/bin/k0s kubeconfig admin"
-  unset k0s_token
-elif [ "$K0S_ROLE" == "worker" ]; then
-  bold "Node is configured as a worker node and joined the cluster.\n"
-fi
+# -----------
+# Main script
+# -----------
 
+ensure_lshw_command
+ensure_hostname_lowercase
+ensure_nvidia_gpu_dependencies
+enforce_nvidia_device_visibility_to_volume_mounts
+install_k0s
+ensure_no_existing_k0s_running
+run_k0s
+wait_for_k0s_daemon
+change_k0s_containerd_runtime_to_nvidia_container_runtime
+# TODO: Verify containerd in k0s can run GPU container using `k0s ctr` command
+print_bootstrap_complete_instruction

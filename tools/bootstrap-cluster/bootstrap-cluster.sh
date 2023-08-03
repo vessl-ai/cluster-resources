@@ -163,10 +163,9 @@ _detect_arch() {
 
 _print_nvidia_dependency_error() {
   if [ "$SKIP_NVIDIA_GPU_DEPENDENCIES" = true ] ; then
-    bold "WARNING: $*"
-    bold "(Running with --skip-nvidia-gpu-dependencies; Skipping NVIDIA GPU dependencies check.)"
+    bold "\nWARNING: NVIDIA depencency missing. (Running with --skip-nvidia-gpu-dependencies; resuming the script)\n$*"
   else
-    bold "\nERROR: $*"
+    bold "\nERROR: NVIDIA depencency missing.\n$*"
     abort ""
   fi
 }
@@ -216,24 +215,24 @@ ensure_nvidia_gpu_dependencies() {
   fi
 
   if ! _command_exists nvcc; then
-    _print_nvidia_dependency_error "nvidia-cuda-toolkit not found.\nRun following command to install nvidia-cuda-toolkit:\n  sudo apt-get install -y nvidia-cuda-toolkit"
+    _print_nvidia_dependency_error "nvidia-cuda-toolkit not found.\nRun following command to install nvidia-cuda-toolkit and bootstrap again:\n  sudo apt-get install -y nvidia-cuda-toolkit"
   fi
 
   if ! _command_exists nvidia-container-toolkit; then
     # shellcheck disable=SC1091
     nvidia_toolkit_command="
-  distribution=$(. /etc/os-release;echo \$ID\$VERSION_ID) \\
+  distribution=\$(. /etc/os-release;echo \$ID\$VERSION_ID) \\
     && curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo apt-key add - \\
     && curl -s -L https://nvidia.github.io/libnvidia-container/\$distribution/libnvidia-container.list | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-  sudo apt-get install -y nvidia-container-toolkit"
+  sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit"
     # shellcheck disable=SC1091
     if [ "$(_detect_os)" = "centos" ]; then
       nvidia_toolkit_command="
-  distribution=$(. /etc/os-release;echo \$ID\$VERSION_ID) \\
+  distribution=\$(. /etc/os-release;echo \$ID\$VERSION_ID) \\
     && curl -s -L https://nvidia.github.io/libnvidia-container/\$distribution/libnvidia-container.repo | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
   sudo dnf clean expire-cache && sudo dnf install -y nvidia-container-toolkit"
     fi
-    _print_nvidia_dependency_error "nvidia-container-toolkit not found.\n\nRun following command to install nvidia-container-toolkit:$nvidia_toolkit_command"
+    _print_nvidia_dependency_error "nvidia-container-toolkit not found.\nRun following command to install nvidia-container-toolkit:\n$nvidia_toolkit_command"
   fi
 }
 
@@ -269,6 +268,7 @@ EOF
 }
 
 install_k0s() {
+  bold "Checking if k0s command exists..."
   if ! _command_exists k0s; then
     bold "k0s (portable Kubernetes runtime) not found in the node. Installing k0s $K0S_VERSION"
     curl -sSLf https://get.k0s.sh | sudo K0S_VERSION="$K0S_VERSION" sh
@@ -283,7 +283,7 @@ ensure_no_existing_k0s_running() {
   fi
 }
 
-install_k0s_controller() {
+run_k0s_controller_daemon() {
   bold "Installing k0scontroller.service on systemd"
   no_taint_option=""
   [[ "$K0S_TAINT_CONTROLLER" == "false" ]] && no_taint_option="--no-taints"
@@ -301,7 +301,7 @@ install_k0s_controller() {
   sudo $K0S_EXECUTABLE start
 }
 
-install_k0s_worker() {
+run_k0s_worker_daemon() {
   bold "Installing k0sworker.service on systemd"
 
   if [ "$K0S_JOIN_TOKEN" == "" ]; then
@@ -316,13 +316,15 @@ install_k0s_worker() {
   sudo $K0S_EXECUTABLE start
 }
 
-run_k0s() {
+run_k0s_daemon() {
   bold "Writing k0s cluster configuration to $K0S_CONFIG_PATH"
   sudo mkdir -p "$K0S_CONFIG_PATH"
   if [ "$K0S_ROLE" == "controller" ]; then
-    install_k0s_controller
+    run_k0s_controller_daemon
   elif [ "$K0S_ROLE" == "worker" ]; then
-    install_k0s_worker
+    run_k0s_worker_daemon
+  else
+    abort "ERROR: k0s role must be either 'controller' or 'worker'."
   fi
 }
 
@@ -353,7 +355,11 @@ change_k0s_containerd_runtime_to_nvidia_container_runtime() {
     return
   fi
 
-  cat <<EOT >> /etc/k0s/containerd.toml
+  cat <<EOT > /etc/k0s/containerd.toml
+# This is a placeholder configuration for k0s managed containerD.
+# If you wish to customize the config replace this file with your custom configuration.
+# For reference see https://github.com/containerd/containerd/blob/main/docs/man/containerd-config.toml.5.md
+version = 2
 [plugins."io.containerd.grpc.v1.cri".containerd.default_runtime]
   runtime_type = "io.containerd.runtime.v1.linux"
   runtime_engine = ""
@@ -401,7 +407,7 @@ ensure_nvidia_gpu_dependencies
 enforce_nvidia_device_visibility_to_volume_mounts
 install_k0s
 ensure_no_existing_k0s_running
-run_k0s
+run_k0s_daemon
 wait_for_k0s_daemon
 change_k0s_containerd_runtime_to_nvidia_container_runtime
 # TODO: Verify containerd in k0s can run GPU container using `k0s ctr` command

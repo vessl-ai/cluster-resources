@@ -162,11 +162,12 @@ _detect_arch() {
 }
 
 _print_nvidia_dependency_error() {
-  if SKIP_NVIDIA_GPU_DEPENDENCIES != "true"; then
-    abort "ERROR: $*"
-  else
+  if [ "$SKIP_NVIDIA_GPU_DEPENDENCIES" = true ] ; then
     bold "WARNING: $*"
-    bold "Running with --skip-nvidia-gpu-dependencies; Skipping NVIDIA GPU dependencies check."
+    bold "(Running with --skip-nvidia-gpu-dependencies; Skipping NVIDIA GPU dependencies check.)"
+  else
+    bold "\nERROR: $*"
+    abort ""
   fi
 }
 
@@ -175,6 +176,7 @@ _print_nvidia_dependency_error() {
 # ----------
 
 ensure_lshw_command() {
+  bold "Checking if lshw command exists..."
   if ! _command_exists lshw; then
     bold "Installing lshw..."
     if [ "$(_detect_os)" = "ubuntu" ]; then
@@ -186,7 +188,11 @@ ensure_lshw_command() {
 }
 
 ensure_hostname_lowercase() {
-  [[ $(hostname)  =~ [A-Z] ]] && abort "Machine's hostname '$(hostname)' contains uppercase characters. Please set hostname to lowercase to make k8s cluster working."
+  bold "Checking if hostname is lowercase..."
+  current_hostname=$(hostname)
+  if [ "$current_hostname" != "${current_hostname,,}" ]; then
+    abort "Machine's hostname '$(hostname)' contains uppercase characters.\nPlease set hostname to lowercase to make k8s cluster working:\n  sudo hostnamectl set-hostname \"$(hostname | tr '[:upper:]' '[:lower:]')\""
+  fi
 }
 
 ensure_nvidia_gpu_dependencies() {
@@ -199,10 +205,9 @@ ensure_nvidia_gpu_dependencies() {
   bold "Checking NVIDIA GPU dependencies..."
 
   # Check if NVIDIA GPU is available
-  if sudo lshw -C display | grep -q "vendor: NVIDIA"; then
-    bold "NVIDIA GPU not found in the system; skipping NVIDIA GPU dependencies check."
-    bold "Please reach out to support@vessl.ai if you need technical support for non-NVIDIA accelerators."
-    return 0
+  if ! (sudo lshw -C display | grep -q "vendor: NVIDIA"); then
+    echo "NVIDIA GPU not found in the system; skipping NVIDIA GPU dependencies check."
+    return
   fi
 
   # Check if nvidia-driver has been installed
@@ -216,19 +221,19 @@ ensure_nvidia_gpu_dependencies() {
 
   if ! _command_exists nvidia-container-toolkit; then
     # shellcheck disable=SC1091
-    nvidia_toolkit_command="\n
-      distribution=$(. /etc/os-release;echo \$ID\$VERSION_ID) \\\n
-        && curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo apt-key add - \\\n
-        && curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list \n
-      sudo apt-get install -y nvidia-container-toolkit"
+    nvidia_toolkit_command="
+  distribution=$(. /etc/os-release;echo \$ID\$VERSION_ID) \\
+    && curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo apt-key add - \\
+    && curl -s -L https://nvidia.github.io/libnvidia-container/\$distribution/libnvidia-container.list | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+  sudo apt-get install -y nvidia-container-toolkit"
     # shellcheck disable=SC1091
     if [ "$(_detect_os)" = "centos" ]; then
-      nvidia_toolkit_command="\n
-        distribution=$(. /etc/os-release;echo \$ID\$VERSION_ID) \\\n
-          && curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.repo | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo \n
-        sudo dnf clean expire-cache && sudo dnf install -y nvidia-container-toolkit"
+      nvidia_toolkit_command="
+  distribution=$(. /etc/os-release;echo \$ID\$VERSION_ID) \\
+    && curl -s -L https://nvidia.github.io/libnvidia-container/\$distribution/libnvidia-container.repo | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
+  sudo dnf clean expire-cache && sudo dnf install -y nvidia-container-toolkit"
     fi
-    _print_nvidia_dependency_error "nvidia-container-toolkit not found.\nRun following command to install nvidia-container-toolkit:\n$nvidia_toolkit_command"
+    _print_nvidia_dependency_error "nvidia-container-toolkit not found.\n\nRun following command to install nvidia-container-toolkit:$nvidia_toolkit_command"
   fi
 }
 

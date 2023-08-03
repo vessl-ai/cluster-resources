@@ -174,8 +174,19 @@ _print_nvidia_dependency_error() {
 # Main logic
 # ----------
 
+ensure_lshw_command() {
+  if ! _command_exists lshw; then
+    bold "Installing lshw..."
+    if [ "$(_detect_os)" = "ubuntu" ]; then
+      sudo apt-get install -y lshw
+    elif [ "$(_detect_os)" = "centos" ]; then
+      sudo yum install -y lshw
+    fi
+  fi
+}
+
 ensure_hostname_lowercase() {
-  [[ $hostname  =~ [A-Z] ]] && abort "Machine's hostname '$hostname' contains uppercase characters. Please set hostname to lowercase to make k8s cluster working."
+  [[ $(hostname)  =~ [A-Z] ]] && abort "Machine's hostname '$(hostname)' contains uppercase characters. Please set hostname to lowercase to make k8s cluster working."
 }
 
 ensure_nvidia_gpu_dependencies() {
@@ -358,10 +369,28 @@ change_k0s_containerd_runtime_to_nvidia_container_runtime() {
 EOT
 }
 
+print_bootstrap_complete_instruction() {
+  bold "-------------------\nBootstrap complete!\n-------------------\n"
+  if [ "$K0S_ROLE" == "controller" ]; then
+    k0s_token=$(sudo "$K0S_EXECUTABLE" token create --role=worker)
+    bold "Node is configured as a control plane node."
+    bold "To join other nodes to the cluster, run the following command on the worker node:"
+    bold ""
+    bold "  curl -sSLf https://install.dev.vssl.ai | sudo bash -s -- --role=worker --token='$k0s_token'"
+    bold ""
+    bold "To get Kubernetes admin's kubeconfig file, run the following command on the control plane node:"
+    bold "  $K0S_EXECUTABLE kubeconfig admin"
+    unset k0s_token
+  elif [ "$K0S_ROLE" == "worker" ]; then
+    bold "Node is configured as a worker node and joined the cluster.\n"
+  fi
+}
+
 # -----------
 # Main script
 # -----------
 
+ensure_lshw_command
 ensure_hostname_lowercase
 ensure_nvidia_gpu_dependencies
 enforce_nvidia_device_visibility_to_volume_mounts
@@ -370,21 +399,5 @@ ensure_no_existing_k0s_running
 run_k0s
 wait_for_k0s_daemon
 change_k0s_containerd_runtime_to_nvidia_container_runtime
-
 # TODO: Verify containerd in k0s can run GPU container using `k0s ctr` command
-
-bold "-------------------\nBootstrap complete!\n-------------------\n"
-if [ "$K0S_ROLE" == "controller" ]; then
-  k0s_token=$(sudo "$K0S_EXECUTABLE" token create --role=worker)
-  bold "Node is configured as a control plane node."
-  bold "To join other nodes to the cluster, run the following command on the worker node:"
-  bold ""
-  bold "  curl -sSLf https://install.dev.vssl.ai | sudo bash -s -- --role=worker --token='$k0s_token'"
-  bold ""
-  bold "To get Kubernetes admin's kubeconfig file, run the following command on the control plane node:"
-  bold "  $K0S_EXECUTABLE kubeconfig admin"
-  unset k0s_token
-elif [ "$K0S_ROLE" == "worker" ]; then
-  bold "Node is configured as a worker node and joined the cluster.\n"
-fi
-
+print_bootstrap_complete_instruction

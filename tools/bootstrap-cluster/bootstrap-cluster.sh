@@ -204,7 +204,7 @@ ensure_nvidia_gpu_dependencies() {
   bold "Checking NVIDIA GPU dependencies..."
 
   # Check if NVIDIA GPU is available
-  if ! (sudo lshw -C display | grep -q "vendor: NVIDIA"); then
+  if ! (sudo lshw -C display | sudo grep -q "vendor: NVIDIA"); then
     echo "NVIDIA GPU not found in the system; skipping NVIDIA GPU dependencies check."
     return
   fi

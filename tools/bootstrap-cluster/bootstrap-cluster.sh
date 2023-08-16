@@ -316,6 +316,27 @@ run_k0s_worker_daemon() {
   sudo $K0S_EXECUTABLE start
 }
 
+check_node_disk_size() {
+  disk_size=$(df -h | awk '/ \/$/ { print $4 }')
+
+  # Extract the numeric value and unit
+  numeric_value=$(echo "$disk_size" | sed 's/[A-Za-z]//g')
+  unit=$(echo "$disk_size" | sed 's/[0-9.]//g')
+
+  # Convert units to GiB
+  case "$unit" in
+      T) numeric_value=$(awk "BEGIN { print $numeric_value * 1024 }") ;;
+      M) numeric_value=$(awk "BEGIN { print $numeric_value / 1024 }") ;;
+      K) numeric_value=$(awk "BEGIN { print $numeric_value / 1024 / 1024 }") ;;
+  esac
+
+  if [ "$numeric_value" -lt 100 ]; then
+      bold "Warning: This node does not have enough disk space. Please consider expanding your disk size."
+  else
+      bold "Disk size available: ${disk_size}"
+  fi
+}
+
 run_k0s_daemon() {
   bold "Writing k0s cluster configuration to $K0S_CONFIG_PATH"
   sudo mkdir -p "$K0S_CONFIG_PATH"
@@ -325,6 +346,12 @@ run_k0s_daemon() {
     run_k0s_worker_daemon
   else
     abort "ERROR: k0s role must be either 'controller' or 'worker'."
+  fi
+
+  check_node_disk_size
+  
+  if ! _command_exists docker; then
+    bold "Your node does not have Docker installed. You may not be able to use the workspace since it requires storing data in the 'docker.log' file."
   fi
 }
 

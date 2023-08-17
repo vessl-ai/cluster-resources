@@ -204,7 +204,7 @@ ensure_nvidia_gpu_dependencies() {
   bold "Checking NVIDIA GPU dependencies..."
 
   # Check if NVIDIA GPU is available
-  if ! (sudo lshw -C display | sudo grep -q "vendor: NVIDIA"); then
+  if ! (lspci | grep NVIDIA); then
     echo "NVIDIA GPU not found in the system; skipping NVIDIA GPU dependencies check."
     return
   fi
@@ -248,14 +248,14 @@ ensure_nvidia_device_volume_mounts() {
   cat << EOF > /etc/nvidia-container-runtime/config.toml
 disable-require = false
 #swarm-resource = "DOCKER_RESOURCE_GPU"
-#accept-nvidia-visible-devices-envvar-when-unprivileged = true
-#accept-nvidia-visible-devices-as-volume-mounts = false
+accept-nvidia-visible-devices-envvar-when-unprivileged = true
+accept-nvidia-visible-devices-as-volume-mounts = true
 
 [nvidia-container-cli]
 #root = "/run/nvidia/driver"
 #path = "/usr/bin/nvidia-container-cli"
 environment = []
-#debug = "/var/log/nvidia-container-toolkit.log"
+debug = "/var/log/nvidia-container-toolkit.log"
 #ldcache = "/etc/ld.so.cache"
 load-kmods = true
 #no-cgroups = false
@@ -263,21 +263,14 @@ load-kmods = true
 ldconfig = "@/sbin/ldconfig.real"
 
 [nvidia-container-runtime]
-#debug = "/var/log/nvidia-container-runtime.log"
+debug = "/var/log/nvidia-container-runtime.log"
 log-level = "info"
 
 # Specify the runtimes to consider. This list is processed in order and the PATH
 # searched for matching executables unless the entry is an absolute path.
 runtimes = [
-    "docker-runc",
     "runc",
 ]
-
-mode = "auto"
-
-    [nvidia-container-runtime.modes.csv]
-
-    mount-spec-path = "/etc/nvidia-container-runtime/host-files-for-container.d"
 EOF
 }
 
@@ -345,9 +338,9 @@ check_node_disk_size() {
   esac
 
   if [ "$numeric_value" -lt 100 ]; then
-      bold "Warning: This node does not have enough disk space. Please consider expanding your disk size."
+      bold "Warning: Node does not have enough disk space on the root(/) volume. Please consider expanding your disk size."
   else
-      bold "Disk size available: ${disk_size}"
+      bold "Root volume space available: ${disk_size}"
   fi
 }
 
@@ -363,10 +356,6 @@ run_k0s_daemon() {
   fi
 
   check_node_disk_size
-  
-  if ! _command_exists docker; then
-    bold "Your node does not have Docker installed. You may not be able to use the workspace since it requires storing data in the 'docker.log' file."
-  fi
 }
 
 wait_for_k0s_daemon() {

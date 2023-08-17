@@ -248,6 +248,7 @@ ensure_nvidia_device_volume_mounts() {
   cat << EOF > /etc/nvidia-container-runtime/config.toml
 disable-require = false
 #swarm-resource = "DOCKER_RESOURCE_GPU"
+# TODO Change option value to `false`
 accept-nvidia-visible-devices-envvar-when-unprivileged = true
 accept-nvidia-visible-devices-as-volume-mounts = true
 

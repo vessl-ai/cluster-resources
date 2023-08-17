@@ -255,7 +255,7 @@ accept-nvidia-visible-devices-as-volume-mounts = true
 #root = "/run/nvidia/driver"
 #path = "/usr/bin/nvidia-container-cli"
 environment = []
-debug = "/var/log/nvidia-container-toolkit.log"
+#debug = "/var/log/nvidia-container-toolkit.log"
 #ldcache = "/etc/ld.so.cache"
 load-kmods = true
 #no-cgroups = false
@@ -263,7 +263,7 @@ load-kmods = true
 ldconfig = "@/sbin/ldconfig.real"
 
 [nvidia-container-runtime]
-debug = "/var/log/nvidia-container-runtime.log"
+#debug = "/var/log/nvidia-container-runtime.log"
 log-level = "info"
 
 # Specify the runtimes to consider. This list is processed in order and the PATH

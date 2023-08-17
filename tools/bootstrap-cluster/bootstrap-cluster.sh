@@ -248,8 +248,8 @@ ensure_nvidia_device_volume_mounts() {
   cat << EOF > /etc/nvidia-container-runtime/config.toml
 disable-require = false
 #swarm-resource = "DOCKER_RESOURCE_GPU"
-accept-nvidia-visible-devices-envvar-when-unprivileged = false
-accept-nvidia-visible-devices-as-volume-mounts = true
+#accept-nvidia-visible-devices-envvar-when-unprivileged = true
+#accept-nvidia-visible-devices-as-volume-mounts = false
 
 [nvidia-container-cli]
 #root = "/run/nvidia/driver"
@@ -264,6 +264,20 @@ ldconfig = "@/sbin/ldconfig.real"
 
 [nvidia-container-runtime]
 #debug = "/var/log/nvidia-container-runtime.log"
+log-level = "info"
+
+# Specify the runtimes to consider. This list is processed in order and the PATH
+# searched for matching executables unless the entry is an absolute path.
+runtimes = [
+    "docker-runc",
+    "runc",
+]
+
+mode = "auto"
+
+    [nvidia-container-runtime.modes.csv]
+
+    mount-spec-path = "/etc/nvidia-container-runtime/host-files-for-container.d"
 EOF
 }
 

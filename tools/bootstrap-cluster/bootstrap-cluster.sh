@@ -204,7 +204,7 @@ ensure_nvidia_gpu_dependencies() {
   bold "Checking NVIDIA GPU dependencies..."
 
   # Check if NVIDIA GPU is available
-  if ! (sudo lshw -C display | grep -q "vendor: NVIDIA"); then
+  if ! (lspci | grep NVIDIA); then
     echo "NVIDIA GPU not found in the system; skipping NVIDIA GPU dependencies check."
     return
   fi
@@ -248,7 +248,8 @@ ensure_nvidia_device_volume_mounts() {
   cat << EOF > /etc/nvidia-container-runtime/config.toml
 disable-require = false
 #swarm-resource = "DOCKER_RESOURCE_GPU"
-accept-nvidia-visible-devices-envvar-when-unprivileged = false
+# TODO Change option value to `false`
+accept-nvidia-visible-devices-envvar-when-unprivileged = true
 accept-nvidia-visible-devices-as-volume-mounts = true
 
 [nvidia-container-cli]
@@ -264,6 +265,13 @@ ldconfig = "@/sbin/ldconfig.real"
 
 [nvidia-container-runtime]
 #debug = "/var/log/nvidia-container-runtime.log"
+log-level = "info"
+
+# Specify the runtimes to consider. This list is processed in order and the PATH
+# searched for matching executables unless the entry is an absolute path.
+runtimes = [
+    "runc",
+]
 EOF
 }
 
@@ -316,6 +324,27 @@ run_k0s_worker_daemon() {
   sudo $K0S_EXECUTABLE start
 }
 
+check_node_disk_size() {
+  disk_size=$(df -h | awk '/ \/$/ { print $4 }')
+
+  # Extract the numeric value and unit
+  numeric_value=$(echo "$disk_size" | sed 's/[A-Za-z]//g')
+  unit=$(echo "$disk_size" | sed 's/[0-9.]//g')
+
+  # Convert units to GiB
+  case "$unit" in
+      T) numeric_value=$(awk "BEGIN { print $numeric_value * 1024 }") ;;
+      M) numeric_value=$(awk "BEGIN { print $numeric_value / 1024 }") ;;
+      K) numeric_value=$(awk "BEGIN { print $numeric_value / 1024 / 1024 }") ;;
+  esac
+
+  if [ "$numeric_value" -lt 100 ]; then
+      bold "Warning: Node does not have enough disk space on the root(/) volume. Please consider expanding your disk size."
+  else
+      bold "Root volume space available: ${disk_size}"
+  fi
+}
+
 run_k0s_daemon() {
   bold "Writing k0s cluster configuration to $K0S_CONFIG_PATH"
   sudo mkdir -p "$K0S_CONFIG_PATH"
@@ -326,6 +355,8 @@ run_k0s_daemon() {
   else
     abort "ERROR: k0s role must be either 'controller' or 'worker'."
   fi
+
+  check_node_disk_size
 }
 
 wait_for_k0s_daemon() {

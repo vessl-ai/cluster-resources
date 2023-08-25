@@ -234,6 +234,35 @@ ensure_nvidia_gpu_dependencies() {
     fi
     _print_nvidia_dependency_error "nvidia-container-toolkit not found.\nRun following command to install nvidia-container-toolkit:\n$nvidia_toolkit_command"
   fi
+
+  # Check if the instance has multiple GPUs and install nvidia-fabricmanager
+  gpu_count=$(nvidia-smi --query-gpu=count --format=csv,noheader,nounits | head -n 1)
+
+  if [ "$gpu_count" -gt 1 ]; then
+      # Check if nvidia-fabricmanager is not already active
+      if ! systemctl --all | grep nvidia-fabricmanager >/dev/null 2>&1; then
+          nvidia_driver_version=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader,nounits | head -n 1 | cut -d '.' -f 1)
+          
+          # Check the OS and install the appropriate package
+          os_type="$(_detect_os)"
+          if [ "$os_type" = "ubuntu" ]; then
+              sudo apt-get install cuda-drivers-fabricmanager-$nvidia_driver_version
+          elif [ "$os_type" = "centos" ]; then
+              sudo yum install cuda-drivers-fabricmanager-$nvidia_driver_version
+          fi
+      fi
+      
+      # Enable and start nvidia-fabricmanager
+      sudo systemctl enable nvidia-fabricmanager && sudo systemctl start nvidia-fabricmanager
+      nvidia_fabricmanager_status=$(systemctl is-active nvidia-fabricmanager)
+      
+      if [ "$nvidia_fabricmanager_status" = "active" ]; then
+          echo "nvidia-fabricmanager is active."
+      else
+          _print_nvidia_dependency_error "nvidia-fabricmanager is not active. This might be due to a CUDA minor version conflict. For example, if you encounter the error 'Failed to initialize NVML: Driver/library version mismatch' when running nvidia-smi, consider rebooting your instance."
+      fi
+  fi
+
 }
 
 ensure_nvidia_device_volume_mounts() {

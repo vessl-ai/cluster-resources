@@ -20,6 +20,9 @@ spec:
       {{- end }}
       nodeSelector:
         node.k0sproject.io/role: control-plane
+      {{- with .Values.simpleRegistry.storageClassName }}
+      priorityClassName: {{ .Values.simpleRegistry.priorityClassName }}
+      {{- end }}
       containers:
       - name: registry
         image: registry:2.8.1

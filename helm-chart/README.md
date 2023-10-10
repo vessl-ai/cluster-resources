@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v0.1.46 (2023-10-10)
+- Add PriorityClass to SimpleRegistry
+
 ### v0.1.45 (2023-07-24)
 - Keep important labels
 

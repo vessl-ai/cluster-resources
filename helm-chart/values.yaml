@@ -82,6 +82,7 @@ simpleRegistry: # @XXX: this section is not intended to use in common cases of i
   storageClassName:
   nodeSelector: {}
   clusterIP:
+  priorityClassName:
 
 prometheus:
   enabled: true

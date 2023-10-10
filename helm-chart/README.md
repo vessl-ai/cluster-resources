@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v0.1.47 (2023-10-10)
+- Fix bug in StorageClass of SimpleRegistry
+
 ### v0.1.46 (2023-10-10)
 - Add PriorityClass to SimpleRegistry
 

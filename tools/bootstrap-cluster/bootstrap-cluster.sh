@@ -240,7 +240,7 @@ ensure_nvidia_gpu_dependencies() {
 
   install_nvidia_fabricmanager=false
   for model in "${models[@]}"; do
-    gpu_count=$(nvidia-smi --query-gpu=gpu_name --format=csv,noheader,nounits | grep -c "$model")
+    gpu_count=$(nvidia-smi --query-gpu=gpu_name --format=csv,noheader,nounits | grep -c "$model" || true)
     if [ "$gpu_count" -gt 1 ]; then
       install_nvidia_fabricmanager=true
       break

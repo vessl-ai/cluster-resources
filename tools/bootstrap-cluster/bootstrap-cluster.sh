@@ -264,17 +264,15 @@ ensure_nvidia_gpu_dependencies() {
     fi
 
     # Enable and start nvidia-fabricmanager
-    sudo systemctl enable nvidia-fabricmanager && sudo systemctl start nvidia-fabricmanager
-    nvidia_fabricmanager_status=$(systemctl is-active nvidia-fabricmanager)
-
-    if [ "$nvidia_fabricmanager_status" = "active" ]; then
+    (sudo systemctl enable nvidia-fabricmanager && sudo systemctl start nvidia-fabricmanager) || true
+    if systemctl is-active nvidia-fabricmanager; then
       echo "nvidia-fabricmanager is active."
+    elif grep -q NOTHING_TO_DO <(systemctl status nvidia-fabricmanager 2>&1); then
+      echo "nvidia-fabricmanager is not required. Skipping fabricmanager installation..."
     else
       _print_nvidia_dependency_error "nvidia-fabricmanager is not active. This might be due to a CUDA minor version conflict. For example, if you encounter the error 'Failed to initialize NVML: Driver/library version mismatch' when running nvidia-smi, consider rebooting your instance."
     fi
   fi
-
-
 }
 
 ensure_nvidia_device_volume_mounts() {

@@ -377,7 +377,7 @@ check_node_disk_size() {
       K) numeric_value=$(awk "BEGIN { print $numeric_value / 1024 / 1024 }") ;;
   esac
 
-  if [ "$numeric_value" -lt 100 ]; then
+  if [ "$(echo "$numeric_value < 100" | bc -l)" -eq 1 ]; then
       bold "Warning: Node does not have enough disk space on the root(/) volume. Please consider expanding your disk size."
   else
       bold "Root volume space available: ${disk_size}"

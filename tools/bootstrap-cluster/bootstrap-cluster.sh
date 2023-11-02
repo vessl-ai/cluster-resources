@@ -467,14 +467,38 @@ print_bootstrap_complete_instruction() {
   fi
 }
 
+ensure_longhorn_dependencies() {
+  bold "Checking longhorn dependencies..."
+  if ! _command_exists iscsiadm; then
+    bold "Installing open-iscsi"
+    sudo apt-get install -y open-iscsi
+  fi
+}
+
+ensure_utilities() {
+  bold "Updating apt..."
+  apt-get update
+  bold "Checking for utilities..."
+  if ! _command_exists sudo; then
+    bold "Installing sudo"
+    apt-get install -y sudo
+  fi
+  if ! _command_exists curl; then
+    bold "Installing curl"
+    sudo apt-get install -y curl
+  fi
+}
+
 # -----------
 # Main script
 # -----------
 
+ensure_utilities
 ensure_lshw_command
 ensure_hostname_lowercase
 ensure_nvidia_gpu_dependencies
 ensure_nvidia_device_volume_mounts
+ensure_longhorn_dependencies
 install_k0s
 ensure_no_existing_k0s_running
 run_k0s_daemon

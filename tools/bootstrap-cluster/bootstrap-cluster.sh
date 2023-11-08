@@ -457,7 +457,7 @@ print_bootstrap_complete_instruction() {
     bold "Node is configured as a control plane node."
     bold "To join other nodes to the cluster, run the following command on the worker node:"
     bold ""
-    bold "  curl -sSLf https://install.dev.vssl.ai | sudo bash -s -- --role=worker --token='$k0s_token'"
+    bold "  curl -sSLf https://install.vessl.ai/bootstrap-cluster/bootstrap-cluster.sh | sudo bash -s -- --role=worker --token='$k0s_token'"
     bold ""
     bold "To get Kubernetes admin's kubeconfig file, run the following command on the control plane node:"
     bold "  $K0S_EXECUTABLE kubeconfig admin"

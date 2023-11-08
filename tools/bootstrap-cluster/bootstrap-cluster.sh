@@ -17,8 +17,7 @@ abort() {
 # Fail fast with a concise message when not using bash
 # Single brackets are needed here for POSIX compatibility
 # shellcheck disable=SC2292
-if [ -z "${BASH_VERSION:-}" ]
-then
+if [ -z "${BASH_VERSION:-}" ]; then
   abort "ERROR: Bash is required to interpret this script."
 fi
 
@@ -51,31 +50,31 @@ print_help() {
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
-    -h|--help)
-      print_help
-      exit 1
-      ;;
-    --role*)
-      K0S_ROLE="${1#*=}"
-      shift
-      ;;
-    --taint-controller)
-      K0S_TAINT_CONTROLLER="true"
-      shift
-      ;;
-    --skip-nvidia-gpu-dependencies)
-      SKIP_NVIDIA_GPU_DEPENDENCIES="true"
-      shift
-      ;;
-    --token*)
-      K0S_JOIN_TOKEN="${1#*=}"
-      shift
-      ;;
-    *)
-      printf "ERROR: unknown option: %s\n" "$1"
-      print_help
-      exit 1
-      ;;
+  -h | --help)
+    print_help
+    exit 1
+    ;;
+  --role*)
+    K0S_ROLE="${1#*=}"
+    shift
+    ;;
+  --taint-controller)
+    K0S_TAINT_CONTROLLER="true"
+    shift
+    ;;
+  --skip-nvidia-gpu-dependencies)
+    SKIP_NVIDIA_GPU_DEPENDENCIES="true"
+    shift
+    ;;
+  --token*)
+    K0S_JOIN_TOKEN="${1#*=}"
+    shift
+    ;;
+  *)
+    printf "ERROR: unknown option: %s\n" "$1"
+    print_help
+    exit 1
+    ;;
   esac
 done
 
@@ -99,20 +98,20 @@ fi
 # ----------------
 
 _command_exists() {
-  command -v "$@" > /dev/null 2>&1
+  command -v "$@" >/dev/null 2>&1
 }
 
 _cuda_version() {
-  if [ -f "/usr/local/cuda/bin/nvcc" ] && /usr/local/cuda/bin/nvcc --version 2&> /dev/null; then
+  if [ -f "/usr/local/cuda/bin/nvcc" ] && /usr/local/cuda/bin/nvcc --version 2 &>/dev/null; then
     # Determine CUDA version using /usr/local/cuda/bin/nvcc binary
     /usr/local/cuda/bin/nvcc --version | sed -n 's/^.*release \([0-9]\+\.[0-9]\+\).*$/\1/p'
   elif [ -f "/usr/local/cuda/version.txt" ]; then
     # Determine CUDA version using /usr/local/cuda/version.txt file
-    < /usr/local/cuda/version.txt sed 's/.* \([0-9]\+\.[0-9]\+\).*/\1/'
+    sed </usr/local/cuda/version.txt 's/.* \([0-9]\+\.[0-9]\+\).*/\1/'
   elif [ -f "/usr/local/cuda/version.json" ] && _command_exists jq; then
     # Determine CUDA version using /usr/local/cuda/version.txt file
-    < /usr/local/cuda/version.json jq -r '.cuda_nvcc.version'
-  elif [ -f "/usr/bin/nvcc" ] && /usr/bin/nvcc --version 2&> /dev/null; then
+    jq </usr/local/cuda/version.json -r '.cuda_nvcc.version'
+  elif [ -f "/usr/bin/nvcc" ] && /usr/bin/nvcc --version 2 &>/dev/null; then
     # Determine CUDA version using /usr/bin/nvcc binary (usually conflicted with /usr/local/cuda, should use as a last resort)
     /usr/bin/nvcc --version | sed -n 's/^.*release \([0-9]\+\.[0-9]\+\).*$/\1/p'
   else
@@ -125,18 +124,21 @@ _detect_os() {
     abort "ERROR: Failed to get OS information.\nVESSL cluster bootstrapper currently supports following OS: Ubuntu 20.04+, Centos 7.9+.\n"
   fi
   # shellcheck source=/dev/null
-  os=$(. /etc/os-release; echo "$ID" | tr "[:upper:]" "[:lower:]")
+  os=$(
+    . /etc/os-release
+    echo "$ID" | tr "[:upper:]" "[:lower:]"
+  )
   case "$os" in
-    ubuntu)
-      echo "ubuntu"
-      ;;
-    centos)
-      echo "centos"
-      ;;
-    *)
-      printf 'ERROR: Unsupported operating system: %s.\nVESSL cluster bootstrapper currently supports following OS: Ubuntu 20.04+, Centos 7.9+.\n' "$os" 1>&2
-      return 1
-      ;;
+  ubuntu)
+    echo "ubuntu"
+    ;;
+  centos)
+    echo "centos"
+    ;;
+  *)
+    printf 'ERROR: Unsupported operating system: %s.\nVESSL cluster bootstrapper currently supports following OS: Ubuntu 20.04+, Centos 7.9+.\n' "$os" 1>&2
+    return 1
+    ;;
   esac
   unset os
 }
@@ -144,25 +146,25 @@ _detect_os() {
 _detect_arch() {
   arch="$(uname -m)"
   case "$arch" in
-    amd64|x86_64)
-      echo "amd64"
-      ;;
-    arm64|aarch64)
-      echo "arm64"
-      ;;
-    armv7l|armv8l|arm)
-      echo "arm"
-      ;;
-    *)
-      printf 'ERROR: Unsupported processor architecture: %s' "$arch" 1>&2
-      return 1
-      ;;
+  amd64 | x86_64)
+    echo "amd64"
+    ;;
+  arm64 | aarch64)
+    echo "arm64"
+    ;;
+  armv7l | armv8l | arm)
+    echo "arm"
+    ;;
+  *)
+    printf 'ERROR: Unsupported processor architecture: %s' "$arch" 1>&2
+    return 1
+    ;;
   esac
   unset arch
 }
 
 _print_nvidia_dependency_error() {
-  if [ "$SKIP_NVIDIA_GPU_DEPENDENCIES" = true ] ; then
+  if [ "$SKIP_NVIDIA_GPU_DEPENDENCIES" = true ]; then
     bold "\nWARNING: NVIDIA depencency missing. (Running with --skip-nvidia-gpu-dependencies; resuming the script)\n$*"
   else
     bold "\nERROR: NVIDIA depencency missing.\n$*"
@@ -284,10 +286,10 @@ ensure_nvidia_device_volume_mounts() {
     bold "nvidia-container-runtime not found; skipping setting NVIDIA GPU device visibility."
     return
   fi
-  cat << EOF > /etc/nvidia-container-runtime/config.toml
+  cat <<EOF >/etc/nvidia-container-runtime/config.toml
 disable-require = false
 #swarm-resource = "DOCKER_RESOURCE_GPU"
-# TODO Change option value to `false`
+# TODO Change option value to $(false)
 accept-nvidia-visible-devices-envvar-when-unprivileged = true
 accept-nvidia-visible-devices-as-volume-mounts = true
 
@@ -324,7 +326,7 @@ install_k0s() {
 
 ensure_no_existing_k0s_running() {
   bold "Checking if there is existing k0s running"
-  if sudo $K0S_EXECUTABLE status 2&> /dev/null; then
+  if sudo $K0S_EXECUTABLE status 2 &>/dev/null; then
     existing_k0s_role="$(k0s status | grep "Role" | awk -F': ' '{print $2}')"
     abort "ERROR: k0s is already running as $existing_k0s_role.\nIf you want to reset the cluster, run 'sudo k0s stop && sudo k0s reset' before retrying the script."
   fi
@@ -372,15 +374,15 @@ check_node_disk_size() {
 
   # Convert units to GiB
   case "$unit" in
-      T) numeric_value=$(awk "BEGIN { print $numeric_value * 1024 }") ;;
-      M) numeric_value=$(awk "BEGIN { print $numeric_value / 1024 }") ;;
-      K) numeric_value=$(awk "BEGIN { print $numeric_value / 1024 / 1024 }") ;;
+  T) numeric_value=$(awk "BEGIN { print $numeric_value * 1024 }") ;;
+  M) numeric_value=$(awk "BEGIN { print $numeric_value / 1024 }") ;;
+  K) numeric_value=$(awk "BEGIN { print $numeric_value / 1024 / 1024 }") ;;
   esac
 
   if [ "$(echo "$numeric_value < 100" | bc -l)" -eq 1 ]; then
-      bold "Warning: Node does not have enough disk space on the root(/) volume. Please consider expanding your disk size."
+    bold "Warning: Node does not have enough disk space on the root(/) volume. Please consider expanding your disk size."
   else
-      bold "Root volume space available: ${disk_size}"
+    bold "Root volume space available: ${disk_size}"
   fi
 }
 
@@ -403,7 +405,7 @@ wait_for_k0s_daemon() {
   sleep 3
   count=0
   until sudo systemctl is-active --quiet "k0s$K0S_ROLE" || [[ $count -eq 10 ]]; do
-    (( count++ ))
+    ((count++))
     echo -e "...\c"
     sleep 3
   done
@@ -425,7 +427,7 @@ ensure_k0s_nvidia_container_runtime() {
     return
   fi
 
-  cat <<EOT > /etc/k0s/containerd.toml
+  cat <<EOT >/etc/k0s/containerd.toml
 # This is a placeholder configuration for k0s managed containerD.
 # If you wish to customize the config replace this file with your custom configuration.
 # For reference see https://github.com/containerd/containerd/blob/main/docs/man/containerd-config.toml.5.md
@@ -457,7 +459,7 @@ print_bootstrap_complete_instruction() {
     bold "Node is configured as a control plane node."
     bold "To join other nodes to the cluster, run the following command on the worker node:"
     bold ""
-    bold "  curl -sSLf https://install.dev.vssl.ai | sudo bash -s -- --role=worker --token='$k0s_token'"
+    bold "  curl -sSLf https://install.vessl.ai/bootstrap-cluster/bootstrap-cluster.sh | sudo bash -s -- --role=worker --token='$k0s_token'"
     bold ""
     bold "To get Kubernetes admin's kubeconfig file, run the following command on the control plane node:"
     bold "  $K0S_EXECUTABLE kubeconfig admin"

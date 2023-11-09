@@ -32,7 +32,7 @@ if [ -z "$3" ]; then
 fi
 ngrok_tls_addr=$3
 
-if [ -z "$4"]; then
+if [ -z "$4" ]; then
     region="jp"
 else  
     region=$4

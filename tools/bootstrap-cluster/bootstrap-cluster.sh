@@ -170,6 +170,21 @@ _print_nvidia_dependency_error() {
   fi
 }
 
+_install_dependency() {
+  # ex. _install_dependency curl
+  # ex. _install_dependency "iscsi dependency" open-iscsi iscsi-initiator-utils
+  local dependency_name=$1
+  local apt_dependency_name=${2:-$1}
+  local yum_dependency_name=${3:-$1}
+
+  bold "Installing ${dependency_name}"
+  if [ "$(_detect_os)" = "ubuntu" ]; then
+    sudo apt-get install -y "${apt_dependency_name}"
+  elif [ "$(_detect_os)" = "centos" ]; then
+    sudo yum install -y "${yum_dependency_name}"
+  fi
+}
+
 # ----------
 # Main logic
 # ----------
@@ -177,12 +192,7 @@ _print_nvidia_dependency_error() {
 ensure_lshw_command() {
   bold "Checking if lshw command exists..."
   if ! _command_exists lshw; then
-    bold "Installing lshw..."
-    if [ "$(_detect_os)" = "ubuntu" ]; then
-      sudo apt-get install -y lshw
-    elif [ "$(_detect_os)" = "centos" ]; then
-      sudo yum install -y lshw
-    fi
+    _install_dependency lshw
   fi
 }
 
@@ -255,12 +265,7 @@ ensure_nvidia_gpu_dependencies() {
       nvidia_driver_version=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader,nounits | head -n 1 | cut -d '.' -f 1)
 
       # Check the OS and install the appropriate package
-      os_type="$(_detect_os)"
-      if [ "$os_type" = "ubuntu" ]; then
-        sudo apt-get install cuda-drivers-fabricmanager-"$nvidia_driver_version"
-      elif [ "$os_type" = "centos" ]; then
-        sudo yum install cuda-drivers-fabricmanager-"$nvidia_driver_version"
-      fi
+      _install_dependency cuda-drivers-fabricmanager-"$nvidia_driver_version"
     fi
 
     # Enable and start nvidia-fabricmanager
@@ -470,22 +475,23 @@ print_bootstrap_complete_instruction() {
 ensure_longhorn_dependencies() {
   bold "Checking longhorn dependencies..."
   if ! _command_exists iscsiadm; then
-    bold "Installing open-iscsi"
-    sudo apt-get install -y open-iscsi
+    _install_dependency "iscsi client" open-iscsi iscsi-initiator-utils
   fi
 }
 
 ensure_utilities() {
-  bold "Updating apt..."
-  apt-get update
   bold "Checking for utilities..."
+  # install sudo without sudo
   if ! _command_exists sudo; then
     bold "Installing sudo"
-    apt-get install -y sudo
+    if [ "$(_detect_os)" = "ubuntu" ]; then
+      apt-get install -y sudo
+    elif [ "$(_detect_os)" = "centos" ]; then
+      yum install -y sudo
+    fi
   fi
   if ! _command_exists curl; then
-    bold "Installing curl"
-    sudo apt-get install -y curl
+    _install_dependency "curl"
   fi
 }
 

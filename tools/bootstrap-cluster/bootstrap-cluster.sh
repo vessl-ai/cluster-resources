@@ -74,11 +74,11 @@ while [[ $# -gt 0 ]]; do
       K0S_JOIN_TOKEN="${1#*=}"
       shift
       ;;
-    --k0s-version)
+    --k0s-version*)
       K0S_VERSION="${1#*=}"
       shift
       ;;
-    --container-runtime)
+    --container-runtime*)
       K0S_CONTAINER_RUNTIME="${1#*=}"
       shift
       ;;

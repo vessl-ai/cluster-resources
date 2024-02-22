@@ -105,6 +105,13 @@ if [ "$K0S_ROLE" == "worker" ] && [ -z "$K0S_JOIN_TOKEN" ]; then
   exit 1
 fi
 
+# Validate Container Runtime
+if [ "$K0S_CONTAINER_RUNTIME" != "containerd" ] && [ "$K0S_CONTAINER_RUNTIME" != "docker" ]; then
+  printf "ERROR: unexpected container runtime: %s\n\n" "$K0S_CONTAINER_RUNTIME"
+  print_help
+  exit 1
+fi
+
 # ----------------
 # Helper functions
 # ----------------
@@ -440,18 +447,20 @@ wait_for_k0s_daemon() {
   fi
 }
 
-ensure_k0s_nvidia_container_runtime() {
-  if ["$K0S_CONTAINER_RUNTIME" = "containerd"]; then
-    if [ ! -f /etc/k0s/containerd.toml ]; then
-      bold "k0s containerd config file not found; skipping changing containerd runtime to nvidia-container-runtime."
-      return
-    fi
-    if ! _command_exists nvidia-container-runtime; then
-      bold "nvidia-container-runtime not found; skipping changing containerd runtime to nvidia-container-runtime."
-      return
-    fi
+ensure_k0s_nvidia_container_runtime_containerd() {
+  local config_file="/etc/k0s/containerd.toml"
 
-    cat <<EOT > /etc/k0s/containerd.toml
+  if [ ! -f "$config_file" ]; then
+    bold "k0s containerd config file not found; skipping changing containerd runtime to nvidia-container-runtime."
+    return
+  fi
+
+  if ! _command_exists nvidia-container-runtime; then
+    bold "nvidia-container-runtime not found; skipping changing containerd runtime to nvidia-container-runtime."
+    return
+  fi
+
+  cat <<EOT > "$config_file"
 # This is a placeholder configuration for k0s managed containerD.
 # If you wish to customize the config replace this file with your custom configuration.
 # For reference see https://github.com/containerd/containerd/blob/main/docs/man/containerd-config.toml.5.md
@@ -474,16 +483,22 @@ version = 2
         [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvdia.options]
           Runtime = "nvidia-container-runtime"
 EOT
-  elif [ "$K0S_CONTAINER_RUNTIME" = "docker" ]; then
-    if [ -f /etc/docker/daemon.json ]; then
-      bold "Found existing /etc/docker/daemon.json, backing up to /etc/docker/daemon.json.bak"
-      sudo mv -v /etc/docker/daemon.json /etc/docker/daemon.json.bak
-    fi
-    if ! _command_exists nvidia-container-runtime; then
-      bold "nvidia-container-runtime not found; skipping changing docker runtime to nvidia-container-runtime."
-      return
-    fi
-    cat <<-EOT | sudo tee /etc/docker/daemon.json
+}
+
+ensure_k0s_nvidia_container_runtime_docker() {
+  local docker_config_file="/etc/docker/daemon.json"
+
+  if ! _command_exists nvidia-container-runtime; then
+    bold "nvidia-container-runtime not found; skipping changing docker runtime to nvidia-container-runtime."
+    return
+  fi
+
+  if [ -f "$docker_config_file" ]; then
+    bold "Found existing $docker_config_file, backing up to $docker_config_file.bak"
+    sudo mv -v "$docker_config_file" "$docker_config_file.bak"
+  fi
+
+  cat <<-EOT | sudo tee "$docker_config_file"
 {
     "exec-opts": [
         "native.cgroupdriver=systemd"
@@ -498,7 +513,14 @@ EOT
     }
 }
 EOT
-    sudo systemctl restart docker
+  sudo systemctl restart docker
+}
+
+ensure_k0s_nvidia_container_runtime() {
+  if [ "$K0S_CONTAINER_RUNTIME" = "containerd" ]; then
+    ensure_k0s_nvidia_container_runtime_containerd
+  elif [ "$K0S_CONTAINER_RUNTIME" = "docker" ]; then
+    ensure_k0s_nvidia_container_runtime_docker
   fi
 }
 

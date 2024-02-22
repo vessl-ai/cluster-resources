@@ -33,6 +33,7 @@ K0S_CONFIG_PATH="/opt/vessl/k0s"
 K0S_VERSION="v1.25.12+k0s.0"
 K0S_ROLE=""
 K0S_JOIN_TOKEN=""
+K0S_CONTAINER_RUNTIME="containerd"
 K0S_TAINT_CONTROLLER="false"
 SKIP_NVIDIA_GPU_DEPENDENCIES="false"
 
@@ -46,6 +47,8 @@ print_help() {
   echo "                                In default, control plane nodes are also used for running workloads"
   echo "--skip-nvidia-gpu-dependencies  Do not abort script when NVIDIA GPU dependencies are not installed"
   echo "--token=[TOKEN]                 token to join k0s cluster; necessary when --role=worker."
+  echo "--k0s-version=[VERSION]         k0s version to install (default: 1.25.12+k0s.0)"
+  echo "--container_runtime=[RUNTIME]   container runtime to use. containerd or docker can be selected. (default: containerd)"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -69,6 +72,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --token*)
       K0S_JOIN_TOKEN="${1#*=}"
+      shift
+      ;;
+    --k0s-version)
+      K0S_VERSION="${1#*=}"
+      shift
+      ;;
+    --container_runtime)
+      K0S_CONTAINER_RUNTIME="${1#*=}"
       shift
       ;;
     *)
@@ -293,7 +304,7 @@ ensure_nvidia_device_volume_mounts() {
 disable-require = false
 #swarm-resource = "DOCKER_RESOURCE_GPU"
 # TODO Change option value to `false`
-accept-nvidia-visible-devices-envvar-when-unprivileged = true
+accept-nvidia-visible-devices-envvar-when-unprivileged = false
 accept-nvidia-visible-devices-as-volume-mounts = true
 
 [nvidia-container-cli]
@@ -360,8 +371,17 @@ run_k0s_worker_daemon() {
     abort "ERROR: cluster join token is not set.\nPlease set --token option to join the cluster."
   fi
   echo "$K0S_JOIN_TOKEN" | sudo tee $K0S_CONFIG_PATH/token
+
+  # Check the container runtime and set CRI_SOCKET_OPTION accordingly
+  if [ "$CONTAINER_RUNTIME" == "docker" ]; then
+    CRI_SOCKET_OPTION="--cri-socket docker:unix:///var/run/docker.sock"
+  else
+    CRI_SOCKET_OPTION=""
+  fi
+
   sudo $K0S_EXECUTABLE install worker \
     --token-file $K0S_CONFIG_PATH/token \
+    $CRI_SOCKET_OPTION \
     --enable-cloud-provider
 
   bold "Starting k0sworker.service"
@@ -421,16 +441,17 @@ wait_for_k0s_daemon() {
 }
 
 ensure_k0s_nvidia_container_runtime() {
-  if [ ! -f /etc/k0s/containerd.toml ]; then
-    bold "k0s containerd config file not found; skipping changing containerd runtime to nvidia-container-runtime."
-    return
-  fi
-  if ! _command_exists nvidia-container-runtime; then
-    bold "nvidia-container-runtime not found; skipping changing containerd runtime to nvidia-container-runtime."
-    return
-  fi
+  if ["$K0S_CONTAINER_RUNTIME" = "containerd"]; then
+    if [ ! -f /etc/k0s/containerd.toml ]; then
+      bold "k0s containerd config file not found; skipping changing containerd runtime to nvidia-container-runtime."
+      return
+    fi
+    if ! _command_exists nvidia-container-runtime; then
+      bold "nvidia-container-runtime not found; skipping changing containerd runtime to nvidia-container-runtime."
+      return
+    fi
 
-  cat <<EOT > /etc/k0s/containerd.toml
+    cat <<EOT > /etc/k0s/containerd.toml
 # This is a placeholder configuration for k0s managed containerD.
 # If you wish to customize the config replace this file with your custom configuration.
 # For reference see https://github.com/containerd/containerd/blob/main/docs/man/containerd-config.toml.5.md
@@ -453,6 +474,31 @@ version = 2
         [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvdia.options]
           Runtime = "nvidia-container-runtime"
 EOT
+  elif ["$K0s_CONTAINER_RUNTIME" = "docker"]; then
+    if [ -f /etc/docker/daemon.json ]; then
+      bold "Found existing /etc/docker/daemon.json, backing up to /etc/docker/daemon.json.bak"
+      sudo mv -v /etc/docker/daemon.json /etc/docker/daemon.json.bak
+    fi
+    if ! _command_exists nvidia-container-runtime; then
+      bold "nvidia-container-runtime not found; skipping changing containerd runtime to nvidia-container-runtime."
+      return
+    fi
+    cat <<-EOT | sudo tee /etc/docker/daemon.json
+{
+    "exec-opts": [
+        "native.cgroupdriver=systemd"
+    ],
+    "default-runtime": "nvidia",
+    "live-restore": true,
+    "runtimes": {
+        "nvidia": {
+            "path": "nvidia-container-runtime",
+            "runtimeArgs": []
+        }
+    }
+}
+EOT
+  fi
 }
 
 print_bootstrap_complete_instruction() {

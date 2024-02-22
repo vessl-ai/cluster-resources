@@ -48,7 +48,7 @@ print_help() {
   echo "--skip-nvidia-gpu-dependencies  Do not abort script when NVIDIA GPU dependencies are not installed"
   echo "--token=[TOKEN]                 token to join k0s cluster; necessary when --role=worker."
   echo "--k0s-version=[VERSION]         k0s version to install (default: 1.25.12+k0s.0)"
-  echo "--container_runtime=[RUNTIME]   container runtime to use. containerd or docker can be selected. (default: containerd)"
+  echo "--container-runtime=[RUNTIME]   container runtime to use. containerd or docker can be selected. (default: containerd)"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -480,7 +480,7 @@ EOT
       sudo mv -v /etc/docker/daemon.json /etc/docker/daemon.json.bak
     fi
     if ! _command_exists nvidia-container-runtime; then
-      bold "nvidia-container-runtime not found; skipping changing containerd runtime to nvidia-container-runtime."
+      bold "nvidia-container-runtime not found; skipping changing docker runtime to nvidia-container-runtime."
       return
     fi
     cat <<-EOT | sudo tee /etc/docker/daemon.json

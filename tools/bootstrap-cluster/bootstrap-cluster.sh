@@ -78,7 +78,7 @@ while [[ $# -gt 0 ]]; do
       K0S_VERSION="${1#*=}"
       shift
       ;;
-    --container_runtime)
+    --container-runtime)
       K0S_CONTAINER_RUNTIME="${1#*=}"
       shift
       ;;
@@ -474,7 +474,7 @@ version = 2
         [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvdia.options]
           Runtime = "nvidia-container-runtime"
 EOT
-  elif ["$K0s_CONTAINER_RUNTIME" = "docker"]; then
+  elif [ "$K0S_CONTAINER_RUNTIME" = "docker" ]; then
     if [ -f /etc/docker/daemon.json ]; then
       bold "Found existing /etc/docker/daemon.json, backing up to /etc/docker/daemon.json.bak"
       sudo mv -v /etc/docker/daemon.json /etc/docker/daemon.json.bak
@@ -498,6 +498,7 @@ EOT
     }
 }
 EOT
+    sudo systemctl restart docker
   fi
 }
 

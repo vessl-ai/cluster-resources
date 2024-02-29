@@ -387,6 +387,7 @@ run_k0s_worker_daemon() {
 
   sudo $K0S_EXECUTABLE install worker \
     --token-file $K0S_CONFIG_PATH/token \
+    --kubelet-extra-args --cgroup-driver=systemd \
     $CRI_SOCKET_OPTION \
     --enable-cloud-provider
 

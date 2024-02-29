@@ -388,7 +388,8 @@ run_k0s_worker_daemon() {
   sudo $K0S_EXECUTABLE install worker \
     --token-file $K0S_CONFIG_PATH/token \
     $CRI_SOCKET_OPTION \
-    --enable-cloud-provider
+    --enable-cloud-provider \
+    --kubelet-extra-args="--cgroup-driver=systemd"
 
   bold "Starting k0sworker.service"
   sudo $K0S_EXECUTABLE start

@@ -465,23 +465,15 @@ ensure_k0s_nvidia_container_runtime_containerd() {
 # If you wish to customize the config replace this file with your custom configuration.
 # For reference see https://github.com/containerd/containerd/blob/main/docs/man/containerd-config.toml.5.md
 version = 2
-[plugins."io.containerd.grpc.v1.cri".containerd.default_runtime]
-  runtime_type = "io.containerd.runtime.v1.linux"
-  runtime_engine = ""
-  runtime_root = ""
-  privileged_without_host_devices = false
-  base_runtime_spec = ""
-    [plugins."io.containerd.grpc.v1.cri".containerd.default_runtime.options]
-      Runtime = "nvidia-container-runtime"
-    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
-    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvdia]
-      runtime_type = "io.containerd.runtime.v1.linux"
-      runtime_engine = ""
-      runtime_root = ""
-      privileged_without_host_devices = false
-      base_runtime_spec = ""
-        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvdia.options]
-          Runtime = "nvidia-container-runtime"
+[plugins."io.containerd.grpc.v1.cri".containerd]
+  default_runtime_name = "nvidia"
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia]
+    privileged_without_host_devices = false
+    runtime_engine = ""
+    runtime_root = ""
+    runtime_type = "io.containerd.runc.v2"
+    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia.options]
+      BinaryName = "/usr/bin/nvidia-container-runtime"
 EOT
 }
 

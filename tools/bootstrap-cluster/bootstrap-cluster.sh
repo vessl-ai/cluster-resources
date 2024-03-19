@@ -36,6 +36,7 @@ K0S_JOIN_TOKEN=""
 K0S_CONTAINER_RUNTIME="containerd"
 K0S_TAINT_CONTROLLER="false"
 SKIP_NVIDIA_GPU_DEPENDENCIES="false"
+K0S_NETWORK_PLUGIN="None"
 
 print_help() {
   echo "usage: $0 [options]"
@@ -48,6 +49,7 @@ print_help() {
   echo "--skip-nvidia-gpu-dependencies  Do not abort script when NVIDIA GPU dependencies are not installed"
   echo "--token=[TOKEN]                 token to join k0s cluster; necessary when --role=worker."
   echo "--k0s-version=[VERSION]         k0s version to install (default: 1.25.12+k0s.0)"
+  echo "--network-plugin=[PLUGIN]       kubelet network plugin to use. (default: None)"
   echo "--container-runtime=[RUNTIME]   container runtime to use. containerd or docker can be selected. (default: containerd)"
 }
 
@@ -76,6 +78,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --k0s-version*)
       K0S_VERSION="${1#*=}"
+      shift
+      ;;
+    --network-plugin*)
+      K0S_NETWORK_PLUGIN="${1#*=}"
       shift
       ;;
     --container-runtime*)
@@ -108,6 +114,12 @@ fi
 # Validate Container Runtime
 if [ "$K0S_CONTAINER_RUNTIME" != "containerd" ] && [ "$K0S_CONTAINER_RUNTIME" != "docker" ]; then
   printf "ERROR: unexpected container runtime: %s\n\n" "$K0S_CONTAINER_RUNTIME"
+  print_help
+  exit 1
+fi
+
+if [ "$K0S_NETWORK_PLUGIN" != "None" ] && [ "$K0S_NETWORK_PLUGIN" != "cni" ]; then
+  printf "ERROR: unexpected network plugin: %s\n\n" "$K0S_NETWORK_PLUGIN"
   print_help
   exit 1
 fi
@@ -385,11 +397,16 @@ run_k0s_worker_daemon() {
     CRI_SOCKET_OPTION=""
   fi
 
+  KUBELET_EXTRA_ARGS="--kubelet-extra-args=--cgroup-driver=systemd"
+  if [ "$K0S_NETWORK_PLUGIN" != "None" ]; then
+    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=$K0S_NETWORK_PLUGIN"
+  fi
+
   sudo $K0S_EXECUTABLE install worker \
     --token-file $K0S_CONFIG_PATH/token \
     $CRI_SOCKET_OPTION \
     --enable-cloud-provider \
-    --kubelet-extra-args="--cgroup-driver=systemd"
+   $KUBELET_EXTRA_ARGS
 
   bold "Starting k0sworker.service"
   sudo $K0S_EXECUTABLE start

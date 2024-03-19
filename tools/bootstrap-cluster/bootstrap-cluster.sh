@@ -36,7 +36,6 @@ K0S_JOIN_TOKEN=""
 K0S_CONTAINER_RUNTIME="containerd"
 K0S_TAINT_CONTROLLER="false"
 SKIP_NVIDIA_GPU_DEPENDENCIES="false"
-K0S_NETWORK_PLUGIN="None"
 
 print_help() {
   echo "usage: $0 [options]"
@@ -49,7 +48,6 @@ print_help() {
   echo "--skip-nvidia-gpu-dependencies  Do not abort script when NVIDIA GPU dependencies are not installed"
   echo "--token=[TOKEN]                 token to join k0s cluster; necessary when --role=worker."
   echo "--k0s-version=[VERSION]         k0s version to install (default: 1.25.12+k0s.0)"
-  echo "--network-plugin=[PLUGIN]       kubelet network plugin to use. (default: None)"
   echo "--container-runtime=[RUNTIME]   container runtime to use. containerd or docker can be selected. (default: containerd)"
 }
 
@@ -398,15 +396,25 @@ run_k0s_worker_daemon() {
   fi
 
   KUBELET_EXTRA_ARGS="--kubelet-extra-args=--cgroup-driver=systemd"
-  if [ "$K0S_NETWORK_PLUGIN" != "None" ]; then
-    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=$K0S_NETWORK_PLUGIN"
+  K0S_VERSION_MAJOR_MINOR=$(echo "$K0S_VERSION" | sed 's/v\([0-9]*\.[0-9]*\).*/\1/')
+
+  IFS='.' read -r -a K0S_VERSION_SPLIT <<< "$K0S_VERSION_MAJOR_MINOR"
+  IFS='.' read -r -a TARGET_VERSION_SPLIT <<< "1.24"
+
+  if (( K0S_VERSION_SPLIT[0] < TARGET_VERSION_SPLIT[0] )); then
+    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni"
+  elif (( K0S_VERSION_SPLIT[0] == TARGET_VERSION_SPLIT[0] )); then
+      # If major versions are equal, compare the minor versions
+      if (( K0S_VERSION_SPLIT[1] < TARGET_VERSION_SPLIT[1] )); then
+        KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni"
+      fi
   fi
 
   sudo $K0S_EXECUTABLE install worker \
     --token-file $K0S_CONFIG_PATH/token \
     $CRI_SOCKET_OPTION \
     --enable-cloud-provider \
-   $KUBELET_EXTRA_ARGS
+    $KUBELET_EXTRA_ARGS
 
   bold "Starting k0sworker.service"
   sudo $K0S_EXECUTABLE start

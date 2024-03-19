@@ -78,10 +78,6 @@ while [[ $# -gt 0 ]]; do
       K0S_VERSION="${1#*=}"
       shift
       ;;
-    --network-plugin*)
-      K0S_NETWORK_PLUGIN="${1#*=}"
-      shift
-      ;;
     --container-runtime*)
       K0S_CONTAINER_RUNTIME="${1#*=}"
       shift
@@ -112,12 +108,6 @@ fi
 # Validate Container Runtime
 if [ "$K0S_CONTAINER_RUNTIME" != "containerd" ] && [ "$K0S_CONTAINER_RUNTIME" != "docker" ]; then
   printf "ERROR: unexpected container runtime: %s\n\n" "$K0S_CONTAINER_RUNTIME"
-  print_help
-  exit 1
-fi
-
-if [ "$K0S_NETWORK_PLUGIN" != "None" ] && [ "$K0S_NETWORK_PLUGIN" != "cni" ]; then
-  printf "ERROR: unexpected network plugin: %s\n\n" "$K0S_NETWORK_PLUGIN"
   print_help
   exit 1
 fi

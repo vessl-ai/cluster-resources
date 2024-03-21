@@ -112,6 +112,25 @@ if [ "$K0S_CONTAINER_RUNTIME" != "containerd" ] && [ "$K0S_CONTAINER_RUNTIME" !=
   exit 1
 fi
 
+# Set kubelet extra args based on k0s version
+KUBELET_EXTRA_ARGS="--kubelet-extra-args=\"--cgroup-driver=systemd"
+K0S_VERSION_MAJOR_MINOR=$(echo "$K0S_VERSION" | sed 's/v\([0-9]*\.[0-9]*\).*/\1/')
+
+IFS='.' read -r -a K0S_VERSION_SPLIT <<< "$K0S_VERSION_MAJOR_MINOR"
+IFS='.' read -r -a TARGET_VERSION_SPLIT <<< "1.24"
+
+if (( K0S_VERSION_SPLIT[0] < TARGET_VERSION_SPLIT[0] )); then
+  KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni\""
+elif (( K0S_VERSION_SPLIT[0] == TARGET_VERSION_SPLIT[0] )); then
+  # If major versions are equal, compare the minor versions
+  if (( K0S_VERSION_SPLIT[1] < TARGET_VERSION_SPLIT[1] )); then
+    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni\""
+  else
+    # Add Last escape double quote for KUBELET_EXTRA_ARGS
+    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS\""
+  fi
+fi
+
 # ----------------
 # Helper functions
 # ----------------
@@ -352,6 +371,7 @@ ensure_no_existing_k0s_running() {
   fi
 }
 
+
 run_k0s_controller_daemon() {
   bold "Installing k0scontroller.service on systemd"
   no_taint_option=""
@@ -364,7 +384,8 @@ run_k0s_controller_daemon() {
     ${no_taint_option:+"--no-taints"} \
     --enable-worker \
     --enable-cloud-provider \
-    --enable-k0s-cloud-provider=true
+    --enable-k0s-cloud-provider=true \
+    $KUBELET_EXTRA_ARGS
 
   bold "Starting k0scontroller.service"
   sudo $K0S_EXECUTABLE start
@@ -389,7 +410,7 @@ run_k0s_worker_daemon() {
     --token-file $K0S_CONFIG_PATH/token \
     $CRI_SOCKET_OPTION \
     --enable-cloud-provider \
-    --kubelet-extra-args="--cgroup-driver=systemd"
+    $KUBELET_EXTRA_ARGS
 
   bold "Starting k0sworker.service"
   sudo $K0S_EXECUTABLE start

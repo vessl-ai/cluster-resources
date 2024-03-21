@@ -385,7 +385,7 @@ run_k0s_worker_daemon() {
     CRI_SOCKET_OPTION=""
   fi
 
-  KUBELET_EXTRA_ARGS="--kubelet-extra-args=--cgroup-driver=systemd"
+  KUBELET_EXTRA_ARGS="--kubelet-extra-args=\"--cgroup-driver=systemd"
   K0S_VERSION_MAJOR_MINOR=$(echo "$K0S_VERSION" | sed 's/v\([0-9]*\.[0-9]*\).*/\1/')
 
   IFS='.' read -r -a K0S_VERSION_SPLIT <<< "$K0S_VERSION_MAJOR_MINOR"

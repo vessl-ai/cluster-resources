@@ -392,12 +392,15 @@ run_k0s_worker_daemon() {
   IFS='.' read -r -a TARGET_VERSION_SPLIT <<< "1.24"
 
   if (( K0S_VERSION_SPLIT[0] < TARGET_VERSION_SPLIT[0] )); then
-    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni"
+    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni\""
   elif (( K0S_VERSION_SPLIT[0] == TARGET_VERSION_SPLIT[0] )); then
-      # If major versions are equal, compare the minor versions
-      if (( K0S_VERSION_SPLIT[1] < TARGET_VERSION_SPLIT[1] )); then
-        KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni"
-      fi
+    # If major versions are equal, compare the minor versions
+    if (( K0S_VERSION_SPLIT[1] < TARGET_VERSION_SPLIT[1] )); then
+      KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni\""
+    else
+      # Add Last escape double quote for KUBELET_EXTRA_ARGS
+      KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS\""
+    fi
   fi
 
   sudo $K0S_EXECUTABLE install worker \

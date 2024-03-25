@@ -385,7 +385,7 @@ run_k0s_controller_daemon() {
     --enable-worker \
     --enable-cloud-provider \
     --enable-k0s-cloud-provider=true \
-    $KUBELET_EXTRA_ARGS
+    "$KUBELET_EXTRA_ARGS"
 
   bold "Starting k0scontroller.service"
   sudo $K0S_EXECUTABLE start
@@ -408,9 +408,9 @@ run_k0s_worker_daemon() {
 
   sudo $K0S_EXECUTABLE install worker \
     --token-file $K0S_CONFIG_PATH/token \
-    $CRI_SOCKET_OPTION \
+    "$CRI_SOCKET_OPTION" \
     --enable-cloud-provider \
-    $KUBELET_EXTRA_ARGS
+    "$KUBELET_EXTRA_ARGS"
 
   bold "Starting k0sworker.service"
   sudo $K0S_EXECUTABLE start

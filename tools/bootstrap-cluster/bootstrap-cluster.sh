@@ -401,7 +401,7 @@ run_k0s_worker_daemon() {
 
   # Check the container runtime and set CRI_SOCKET_OPTION accordingly
   if [ "$K0S_CONTAINER_RUNTIME" == "docker" ]; then
-    CRI_SOCKET_OPTION="--cri-socket docker:unix:///var/run/docker.sock"
+    CRI_SOCKET_OPTION="--cri-socket=docker:unix:///var/run/docker.sock"
   else
     CRI_SOCKET_OPTION=""
   fi

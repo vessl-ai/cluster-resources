@@ -36,7 +36,7 @@ K0S_JOIN_TOKEN=""
 K0S_CONTAINER_RUNTIME="containerd"
 K0S_TAINT_CONTROLLER="false"
 SKIP_NVIDIA_GPU_DEPENDENCIES="false"
-KUBELET_EXTRA_ARGS="--cgroup-driver=systemd"
+NODE_IP=""
 
 print_help() {
   echo "usage: $0 [options]"
@@ -50,7 +50,7 @@ print_help() {
   echo "--token=[TOKEN]                 token to join k0s cluster; necessary when --role=worker."
   echo "--k0s-version=[VERSION]         k0s version to install (default: 1.25.12+k0s.0)"
   echo "--container-runtime=[RUNTIME]   container runtime to use. containerd or docker can be selected. (default: containerd)"
-  echo "--kubelet-extra-args=[ARGS]     Extra arguments for kubelet. (example: '--cgroup-driver=systemd --node-ip=1.2.3.4', reference: https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/#options)"
+  echo "--node-ip=[IP]                  IP address (or comma-separated dual-stack IP addresses) of the node. If unset, kubelet will use the node's default IPv4 address, if any, or its default IPv6 address if it has no IPv4 addresses. You can pass \"::\" to make it prefer the default IPv6 address rather than the default IPv4 address."
 }
 
 while [[ $# -gt 0 ]]; do
@@ -84,8 +84,8 @@ while [[ $# -gt 0 ]]; do
       K0S_CONTAINER_RUNTIME="${1#*=}"
       shift
       ;;
-    --kubelet-extra-args*)
-      KUBELET_EXTRA_ARGS="${1#*=}"
+    --node-ip*)
+      NODE_IP="${1#*=}"
       shift
       ;;
     *)
@@ -119,7 +119,11 @@ if [ "$K0S_CONTAINER_RUNTIME" != "containerd" ] && [ "$K0S_CONTAINER_RUNTIME" !=
 fi
 
 # Set kubelet extra args based on k0s version
-KUBELET_EXTRA_ARGS="--kubelet-extra-args=\"$KUBELET_EXTRA_ARGS"
+KUBELET_EXTRA_ARGS="--kubelet-extra-args=\"--cgroup-driver=systemd"
+
+if [ "$NODE_IP" != "" ]; then
+  KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --node-ip=$NODE_IP"
+fi
 
 K0S_VERSION_MAJOR_MINOR=$(echo "$K0S_VERSION" | sed 's/v\([0-9]*\.[0-9]*\).*/\1/')
 IFS='.' read -r -a K0S_VERSION_SPLIT <<< "$K0S_VERSION_MAJOR_MINOR"

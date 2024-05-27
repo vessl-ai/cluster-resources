@@ -36,6 +36,7 @@ K0S_JOIN_TOKEN=""
 K0S_CONTAINER_RUNTIME="containerd"
 K0S_TAINT_CONTROLLER="false"
 SKIP_NVIDIA_GPU_DEPENDENCIES="false"
+KUBELET_EXTRA_ARGS="--cgroup-driver=systemd"
 
 print_help() {
   echo "usage: $0 [options]"
@@ -49,6 +50,7 @@ print_help() {
   echo "--token=[TOKEN]                 token to join k0s cluster; necessary when --role=worker."
   echo "--k0s-version=[VERSION]         k0s version to install (default: 1.25.12+k0s.0)"
   echo "--container-runtime=[RUNTIME]   container runtime to use. containerd or docker can be selected. (default: containerd)"
+  echo "--kubelet-extra-args=[ARGS]     Extra arguments for kubelet. (example: '--cgroup-driver=systemd --node-ip=1.2.3.4', reference: https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/#options)"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -82,6 +84,10 @@ while [[ $# -gt 0 ]]; do
       K0S_CONTAINER_RUNTIME="${1#*=}"
       shift
       ;;
+    --kubelet-extra-args*)
+      KUBELET_EXTRA_ARGS="${1#*=}"
+      shift
+      ;;
     *)
       printf "ERROR: unknown option: %s\n" "$1"
       print_help
@@ -113,23 +119,23 @@ if [ "$K0S_CONTAINER_RUNTIME" != "containerd" ] && [ "$K0S_CONTAINER_RUNTIME" !=
 fi
 
 # Set kubelet extra args based on k0s version
-KUBELET_EXTRA_ARGS="--kubelet-extra-args=\"--cgroup-driver=systemd"
-K0S_VERSION_MAJOR_MINOR=$(echo "$K0S_VERSION" | sed 's/v\([0-9]*\.[0-9]*\).*/\1/')
+KUBELET_EXTRA_ARGS="--kubelet-extra-args=\"$KUBELET_EXTRA_ARGS"
 
+K0S_VERSION_MAJOR_MINOR=$(echo "$K0S_VERSION" | sed 's/v\([0-9]*\.[0-9]*\).*/\1/')
 IFS='.' read -r -a K0S_VERSION_SPLIT <<< "$K0S_VERSION_MAJOR_MINOR"
 IFS='.' read -r -a TARGET_VERSION_SPLIT <<< "1.24"
 
 if (( K0S_VERSION_SPLIT[0] < TARGET_VERSION_SPLIT[0] )); then
-  KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni\""
+  KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni"
 elif (( K0S_VERSION_SPLIT[0] == TARGET_VERSION_SPLIT[0] )); then
   # If major versions are equal, compare the minor versions
   if (( K0S_VERSION_SPLIT[1] < TARGET_VERSION_SPLIT[1] )); then
-    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni\""
-  else
-    # Add Last escape double quote for KUBELET_EXTRA_ARGS
-    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS\""
+    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni"
   fi
 fi
+
+# Add Last escape double quote for KUBELET_EXTRA_ARGS
+KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS\""
 
 # ----------------
 # Helper functions

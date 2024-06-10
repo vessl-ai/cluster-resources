@@ -377,6 +377,7 @@ EOF
   if [ -d /run/systemd/system ]; then
     bold "systemd detected as init system; setting cgroup driver to systemd"
     echo "cgroupDriver: systemd" | sudo tee -a "$KUBELET_EXTRA_CONFIG_FILE"
+    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --cgroup-driver=systemd"
   fi
 
   if [ "$NODE_IP" != "" ]; then

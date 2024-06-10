@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Usage: curl -sSLf https://install.vessl.ai/bootstrap-cluster/bootstrap-cluster.sh | sudo bash -s -- --role=(controller|worker)
 set -eo pipefail
 
 if [ -n "${DEBUG}" ]; then

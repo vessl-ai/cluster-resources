@@ -33,8 +33,10 @@ K0S_CONFIG_PATH="/opt/vessl/k0s"
 K0S_VERSION="v1.25.12+k0s.0"
 K0S_ROLE=""
 K0S_JOIN_TOKEN=""
+K0S_CONTAINER_RUNTIME="containerd"
 K0S_TAINT_CONTROLLER="false"
 SKIP_NVIDIA_GPU_DEPENDENCIES="false"
+NODE_IP=""
 
 print_help() {
   echo "usage: $0 [options]"
@@ -46,6 +48,9 @@ print_help() {
   echo "                                In default, control plane nodes are also used for running workloads"
   echo "--skip-nvidia-gpu-dependencies  Do not abort script when NVIDIA GPU dependencies are not installed"
   echo "--token=[TOKEN]                 token to join k0s cluster; necessary when --role=worker."
+  echo "--k0s-version=[VERSION]         k0s version to install (default: 1.25.12+k0s.0)"
+  echo "--container-runtime=[RUNTIME]   container runtime to use. containerd or docker can be selected. (default: containerd)"
+  echo "--node-ip=[IP]                  IP address (or comma-separated dual-stack IP addresses) of the node. If unset, kubelet will use the node's default IPv4 address, if any, or its default IPv6 address if it has no IPv4 addresses. You can pass \"::\" to make it prefer the default IPv6 address rather than the default IPv4 address."
 }
 
 while [[ $# -gt 0 ]]; do
@@ -71,6 +76,18 @@ while [[ $# -gt 0 ]]; do
       K0S_JOIN_TOKEN="${1#*=}"
       shift
       ;;
+    --k0s-version*)
+      K0S_VERSION="${1#*=}"
+      shift
+      ;;
+    --container-runtime*)
+      K0S_CONTAINER_RUNTIME="${1#*=}"
+      shift
+      ;;
+    --node-ip*)
+      NODE_IP="${1#*=}"
+      shift
+      ;;
     *)
       printf "ERROR: unknown option: %s\n" "$1"
       print_help
@@ -93,6 +110,36 @@ if [ "$K0S_ROLE" == "worker" ] && [ -z "$K0S_JOIN_TOKEN" ]; then
   print_help
   exit 1
 fi
+
+# Validate Container Runtime
+if [ "$K0S_CONTAINER_RUNTIME" != "containerd" ] && [ "$K0S_CONTAINER_RUNTIME" != "docker" ]; then
+  printf "ERROR: unexpected container runtime: %s\n\n" "$K0S_CONTAINER_RUNTIME"
+  print_help
+  exit 1
+fi
+
+# Set kubelet extra args based on k0s version
+KUBELET_EXTRA_ARGS="--kubelet-extra-args=\"--cgroup-driver=systemd"
+
+if [ "$NODE_IP" != "" ]; then
+  KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --node-ip=$NODE_IP"
+fi
+
+K0S_VERSION_MAJOR_MINOR=$(echo "$K0S_VERSION" | sed 's/v\([0-9]*\.[0-9]*\).*/\1/')
+IFS='.' read -r -a K0S_VERSION_SPLIT <<< "$K0S_VERSION_MAJOR_MINOR"
+IFS='.' read -r -a TARGET_VERSION_SPLIT <<< "1.24"
+
+if (( K0S_VERSION_SPLIT[0] < TARGET_VERSION_SPLIT[0] )); then
+  KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni"
+elif (( K0S_VERSION_SPLIT[0] == TARGET_VERSION_SPLIT[0] )); then
+  # If major versions are equal, compare the minor versions
+  if (( K0S_VERSION_SPLIT[1] < TARGET_VERSION_SPLIT[1] )); then
+    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni"
+  fi
+fi
+
+# Add Last escape double quote for KUBELET_EXTRA_ARGS
+KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS\""
 
 # ----------------
 # Helper functions
@@ -170,6 +217,21 @@ _print_nvidia_dependency_error() {
   fi
 }
 
+_install_dependency() {
+  # ex. _install_dependency curl
+  # ex. _install_dependency "iscsi dependency" open-iscsi iscsi-initiator-utils
+  local dependency_name=$1
+  local apt_dependency_name=${2:-$1}
+  local yum_dependency_name=${3:-$1}
+
+  bold "Installing ${dependency_name}"
+  if [ "$(_detect_os)" = "ubuntu" ]; then
+    sudo apt-get install -y "${apt_dependency_name}"
+  elif [ "$(_detect_os)" = "centos" ]; then
+    sudo yum install -y "${yum_dependency_name}"
+  fi
+}
+
 # ----------
 # Main logic
 # ----------
@@ -177,12 +239,7 @@ _print_nvidia_dependency_error() {
 ensure_lshw_command() {
   bold "Checking if lshw command exists..."
   if ! _command_exists lshw; then
-    bold "Installing lshw..."
-    if [ "$(_detect_os)" = "ubuntu" ]; then
-      sudo apt-get install -y lshw
-    elif [ "$(_detect_os)" = "centos" ]; then
-      sudo yum install -y lshw
-    fi
+    _install_dependency lshw
   fi
 }
 
@@ -204,7 +261,7 @@ ensure_nvidia_gpu_dependencies() {
   bold "Checking NVIDIA GPU dependencies..."
 
   # Check if NVIDIA GPU is available
-  if ! (sudo lshw -C display | grep -q "vendor: NVIDIA"); then
+  if ! (lspci | grep NVIDIA); then
     echo "NVIDIA GPU not found in the system; skipping NVIDIA GPU dependencies check."
     return
   fi
@@ -233,6 +290,40 @@ ensure_nvidia_gpu_dependencies() {
   sudo dnf clean expire-cache && sudo dnf install -y nvidia-container-toolkit"
     fi
     _print_nvidia_dependency_error "nvidia-container-toolkit not found.\nRun following command to install nvidia-container-toolkit:\n$nvidia_toolkit_command"
+  fi
+
+  # Check if the instance has multiple GPUs of specified models and install nvidia-fabricmanager
+  models=("A100" "H100" "V100" "H800" "A800")
+
+  install_nvidia_fabricmanager=false
+  for model in "${models[@]}"; do
+    gpu_count=$(nvidia-smi --query-gpu=gpu_name --format=csv,noheader,nounits | grep -c "$model" || true)
+    if [ "$gpu_count" -gt 1 ]; then
+      install_nvidia_fabricmanager=true
+      break
+    fi
+  done
+
+  if $install_nvidia_fabricmanager; then
+    bold "Detected multiple GPUs of specified models. Initiating nvidia-fabricmanager installation..."
+
+    # Check if nvidia-fabricmanager is not already active
+    if ! systemctl --all | grep -q nvidia-fabricmanager; then
+      nvidia_driver_version=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader,nounits | head -n 1 | cut -d '.' -f 1)
+
+      # Check the OS and install the appropriate package
+      _install_dependency cuda-drivers-fabricmanager-"$nvidia_driver_version"
+    fi
+
+    # Enable and start nvidia-fabricmanager
+    (sudo systemctl enable nvidia-fabricmanager && sudo systemctl start nvidia-fabricmanager) || true
+    if systemctl is-active nvidia-fabricmanager; then
+      echo "nvidia-fabricmanager is active."
+    elif grep -q NOTHING_TO_DO <(systemctl status nvidia-fabricmanager 2>&1); then
+      echo "nvidia-fabricmanager is not required. Skipping fabricmanager installation..."
+    else
+      _print_nvidia_dependency_error "nvidia-fabricmanager is not active. This might be due to a CUDA minor version conflict. For example, if you encounter the error 'Failed to initialize NVML: Driver/library version mismatch' when running nvidia-smi, consider rebooting your instance."
+    fi
   fi
 }
 
@@ -264,6 +355,13 @@ ldconfig = "@/sbin/ldconfig.real"
 
 [nvidia-container-runtime]
 #debug = "/var/log/nvidia-container-runtime.log"
+log-level = "info"
+
+# Specify the runtimes to consider. This list is processed in order and the PATH
+# searched for matching executables unless the entry is an absolute path.
+runtimes = [
+    "runc",
+]
 EOF
 }
 
@@ -283,6 +381,7 @@ ensure_no_existing_k0s_running() {
   fi
 }
 
+
 run_k0s_controller_daemon() {
   bold "Installing k0scontroller.service on systemd"
   no_taint_option=""
@@ -295,7 +394,8 @@ run_k0s_controller_daemon() {
     ${no_taint_option:+"--no-taints"} \
     --enable-worker \
     --enable-cloud-provider \
-    --enable-k0s-cloud-provider=true
+    --enable-k0s-cloud-provider=true \
+    "$KUBELET_EXTRA_ARGS"
 
   bold "Starting k0scontroller.service"
   sudo $K0S_EXECUTABLE start
@@ -308,12 +408,43 @@ run_k0s_worker_daemon() {
     abort "ERROR: cluster join token is not set.\nPlease set --token option to join the cluster."
   fi
   echo "$K0S_JOIN_TOKEN" | sudo tee $K0S_CONFIG_PATH/token
+
+  # Check the container runtime and set CRI_SOCKET_OPTION accordingly
+  if [ "$K0S_CONTAINER_RUNTIME" == "docker" ]; then
+    CRI_SOCKET_OPTION="--cri-socket=docker:unix:///var/run/docker.sock"
+  else
+    CRI_SOCKET_OPTION=""
+  fi
+
   sudo $K0S_EXECUTABLE install worker \
     --token-file $K0S_CONFIG_PATH/token \
-    --enable-cloud-provider
+    "$CRI_SOCKET_OPTION" \
+    --enable-cloud-provider \
+    "$KUBELET_EXTRA_ARGS"
 
   bold "Starting k0sworker.service"
   sudo $K0S_EXECUTABLE start
+}
+
+check_node_disk_size() {
+  disk_size=$(df -h | awk '/ \/$/ { print $4 }')
+
+  # Extract the numeric value and unit
+  numeric_value=$(echo "$disk_size" | sed 's/[A-Za-z]//g')
+  unit=$(echo "$disk_size" | sed 's/[0-9.]//g')
+
+  # Convert units to GiB
+  case "$unit" in
+      T) numeric_value=$(awk "BEGIN { print $numeric_value * 1024 }") ;;
+      M) numeric_value=$(awk "BEGIN { print $numeric_value / 1024 }") ;;
+      K) numeric_value=$(awk "BEGIN { print $numeric_value / 1024 / 1024 }") ;;
+  esac
+
+  if [ "$(echo "$numeric_value < 100" | bc -l)" -eq 1 ]; then
+      bold "Warning: Node does not have enough disk space on the root(/) volume. Please consider expanding your disk size."
+  else
+      bold "Root volume space available: ${disk_size}"
+  fi
 }
 
 run_k0s_daemon() {
@@ -326,6 +457,8 @@ run_k0s_daemon() {
   else
     abort "ERROR: k0s role must be either 'controller' or 'worker'."
   fi
+
+  check_node_disk_size
 }
 
 wait_for_k0s_daemon() {
@@ -345,39 +478,73 @@ wait_for_k0s_daemon() {
   fi
 }
 
-ensure_k0s_nvidia_container_runtime() {
-  if [ ! -f /etc/k0s/containerd.toml ]; then
+ensure_k0s_nvidia_container_runtime_containerd() {
+  local config_file="/etc/k0s/containerd.toml"
+
+  if [ ! -f "$config_file" ]; then
     bold "k0s containerd config file not found; skipping changing containerd runtime to nvidia-container-runtime."
     return
   fi
+
   if ! _command_exists nvidia-container-runtime; then
     bold "nvidia-container-runtime not found; skipping changing containerd runtime to nvidia-container-runtime."
     return
   fi
 
-  cat <<EOT > /etc/k0s/containerd.toml
+  cat <<EOT > "$config_file"
 # This is a placeholder configuration for k0s managed containerD.
 # If you wish to customize the config replace this file with your custom configuration.
 # For reference see https://github.com/containerd/containerd/blob/main/docs/man/containerd-config.toml.5.md
 version = 2
-[plugins."io.containerd.grpc.v1.cri".containerd.default_runtime]
-  runtime_type = "io.containerd.runtime.v1.linux"
-  runtime_engine = ""
-  runtime_root = ""
-  privileged_without_host_devices = false
-  base_runtime_spec = ""
-    [plugins."io.containerd.grpc.v1.cri".containerd.default_runtime.options]
-      Runtime = "nvidia-container-runtime"
-    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
-    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvdia]
-      runtime_type = "io.containerd.runtime.v1.linux"
-      runtime_engine = ""
-      runtime_root = ""
-      privileged_without_host_devices = false
-      base_runtime_spec = ""
-        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvdia.options]
-          Runtime = "nvidia-container-runtime"
+[plugins."io.containerd.grpc.v1.cri".containerd]
+  default_runtime_name = "nvidia"
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia]
+    privileged_without_host_devices = false
+    runtime_engine = ""
+    runtime_root = ""
+    runtime_type = "io.containerd.runc.v2"
+    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia.options]
+      BinaryName = "/usr/bin/nvidia-container-runtime"
 EOT
+}
+
+ensure_k0s_nvidia_container_runtime_docker() {
+  local docker_config_file="/etc/docker/daemon.json"
+
+  if ! _command_exists nvidia-container-runtime; then
+    bold "nvidia-container-runtime not found; skipping changing docker runtime to nvidia-container-runtime."
+    return
+  fi
+
+  if [ -f "$docker_config_file" ]; then
+    bold "Found existing $docker_config_file, backing up to $docker_config_file.bak"
+    sudo mv -v "$docker_config_file" "$docker_config_file.bak"
+  fi
+
+  cat <<-EOT | sudo tee "$docker_config_file"
+{
+    "exec-opts": [
+        "native.cgroupdriver=systemd"
+    ],
+    "default-runtime": "nvidia",
+    "live-restore": true,
+    "runtimes": {
+        "nvidia": {
+            "path": "nvidia-container-runtime",
+            "runtimeArgs": []
+        }
+    }
+}
+EOT
+  sudo systemctl restart docker
+}
+
+ensure_k0s_nvidia_container_runtime() {
+  if [ "$K0S_CONTAINER_RUNTIME" = "containerd" ]; then
+    ensure_k0s_nvidia_container_runtime_containerd
+  elif [ "$K0S_CONTAINER_RUNTIME" = "docker" ]; then
+    ensure_k0s_nvidia_container_runtime_docker
+  fi
 }
 
 print_bootstrap_complete_instruction() {
@@ -387,7 +554,7 @@ print_bootstrap_complete_instruction() {
     bold "Node is configured as a control plane node."
     bold "To join other nodes to the cluster, run the following command on the worker node:"
     bold ""
-    bold "  curl -sSLf https://install.dev.vssl.ai | sudo bash -s -- --role=worker --token='$k0s_token'"
+    bold "  curl -sSLf https://install.vessl.ai/bootstrap-cluster/bootstrap-cluster.sh | sudo bash -s -- --role=worker --token='$k0s_token'"
     bold ""
     bold "To get Kubernetes admin's kubeconfig file, run the following command on the control plane node:"
     bold "  $K0S_EXECUTABLE kubeconfig admin"
@@ -397,14 +564,39 @@ print_bootstrap_complete_instruction() {
   fi
 }
 
+ensure_longhorn_dependencies() {
+  bold "Checking longhorn dependencies..."
+  if ! _command_exists iscsiadm; then
+    _install_dependency "iscsi client" open-iscsi iscsi-initiator-utils
+  fi
+}
+
+ensure_utilities() {
+  bold "Checking for utilities..."
+  # install sudo without sudo
+  if ! _command_exists sudo; then
+    bold "Installing sudo"
+    if [ "$(_detect_os)" = "ubuntu" ]; then
+      apt-get install -y sudo
+    elif [ "$(_detect_os)" = "centos" ]; then
+      yum install -y sudo
+    fi
+  fi
+  if ! _command_exists curl; then
+    _install_dependency "curl"
+  fi
+}
+
 # -----------
 # Main script
 # -----------
 
+ensure_utilities
 ensure_lshw_command
 ensure_hostname_lowercase
 ensure_nvidia_gpu_dependencies
 ensure_nvidia_device_volume_mounts
+ensure_longhorn_dependencies
 install_k0s
 ensure_no_existing_k0s_running
 run_k0s_daemon

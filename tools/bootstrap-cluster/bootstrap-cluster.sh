@@ -30,7 +30,7 @@ set -u
 
 K0S_EXECUTABLE="/usr/local/bin/k0s" # See https://get.k0s.sh/ to see where this is located (k0sInstallPath)
 K0S_CONFIG_PATH="/opt/vessl/k0s"
-K0S_VERSION="v1.25.12+k0s.0"
+K0S_VERSION="v1.29.5+k0s.0"
 K0S_ROLE=""
 K0S_JOIN_TOKEN=""
 K0S_CONTAINER_RUNTIME="containerd"
@@ -48,7 +48,7 @@ print_help() {
   echo "                                In default, control plane nodes are also used for running workloads"
   echo "--skip-nvidia-gpu-dependencies  Do not abort script when NVIDIA GPU dependencies are not installed"
   echo "--token=[TOKEN]                 token to join k0s cluster; necessary when --role=worker."
-  echo "--k0s-version=[VERSION]         k0s version to install (default: 1.25.12+k0s.0)"
+  echo "--k0s-version=[VERSION]         k0s version to install (default: $K0S_VERSION)"
   echo "--container-runtime=[RUNTIME]   container runtime to use. containerd or docker can be selected. (default: containerd)"
   echo "--node-ip=[IP]                  IP address (or comma-separated dual-stack IP addresses) of the node. If unset, kubelet will use the node's default IPv4 address, if any, or its default IPv6 address if it has no IPv4 addresses. You can pass \"::\" to make it prefer the default IPv6 address rather than the default IPv4 address."
 }
@@ -117,29 +117,6 @@ if [ "$K0S_CONTAINER_RUNTIME" != "containerd" ] && [ "$K0S_CONTAINER_RUNTIME" !=
   print_help
   exit 1
 fi
-
-# Set kubelet extra args based on k0s version
-KUBELET_EXTRA_ARGS="--kubelet-extra-args=\"--cgroup-driver=systemd"
-
-if [ "$NODE_IP" != "" ]; then
-  KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --node-ip=$NODE_IP"
-fi
-
-K0S_VERSION_MAJOR_MINOR=$(echo "$K0S_VERSION" | sed 's/v\([0-9]*\.[0-9]*\).*/\1/')
-IFS='.' read -r -a K0S_VERSION_SPLIT <<< "$K0S_VERSION_MAJOR_MINOR"
-IFS='.' read -r -a TARGET_VERSION_SPLIT <<< "1.24"
-
-if (( K0S_VERSION_SPLIT[0] < TARGET_VERSION_SPLIT[0] )); then
-  KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni"
-elif (( K0S_VERSION_SPLIT[0] == TARGET_VERSION_SPLIT[0] )); then
-  # If major versions are equal, compare the minor versions
-  if (( K0S_VERSION_SPLIT[1] < TARGET_VERSION_SPLIT[1] )); then
-    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni"
-  fi
-fi
-
-# Add Last escape double quote for KUBELET_EXTRA_ARGS
-KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS\""
 
 # ----------------
 # Helper functions
@@ -381,6 +358,54 @@ ensure_no_existing_k0s_running() {
   fi
 }
 
+generate_k0s_kubelet_extra_config() {
+  bold "Generating k0s kubelet extra config"
+
+  KUBELET_EXTRA_CONFIG_FILE="$K0S_CONFIG_PATH/kubelet-extra-config.yaml"
+  KUBELET_EXTRA_ARGS="--kubelet-extra-args=\"--config=$KUBELET_EXTRA_CONFIG_FILE"
+
+  # Generate kubelet extra configs file on $K0S_CONFIG_PATH/kubelet-extra-args.yaml
+  sudo tee $KUBELET_EXTRA_CONFIG_FILE >/dev/null <<-EOF
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+
+EOF
+
+  # Set cgroup driver to systemd if init system is systemd, to prevent issues caused by multiple cgroup managers
+  # Ref: https://kubernetes.io/docs/setup/production-environment/container-runtimes/#systemd-cgroup-driver
+  # Might also relevant to Calico crashlooping issue: https://github.com/projectcalico/calico/issues/2146#issuecomment-559401221
+  if [ -d /run/systemd/system ]; then
+    bold "systemd detected as init system; setting cgroup driver to systemd"
+    echo "cgroupDriver: systemd" | sudo tee -a "$KUBELET_EXTRA_CONFIG_FILE"
+    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --cgroup-driver=systemd"
+  fi
+
+  if [ "$NODE_IP" != "" ]; then
+    bold "Setting node IP to $NODE_IP"
+    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --node-ip=$NODE_IP"
+  fi
+
+  K0S_VERSION_MAJOR_MINOR=$(echo "$K0S_VERSION" | sed 's/v\([0-9]*\.[0-9]*\).*/\1/')
+  IFS='.' read -r -a K0S_VERSION_SPLIT <<< "$K0S_VERSION_MAJOR_MINOR"
+  IFS='.' read -r -a TARGET_VERSION_SPLIT <<< "1.24"
+
+  if (( K0S_VERSION_SPLIT[0] < TARGET_VERSION_SPLIT[0] )); then
+    bold "Detected k0s version < 1.24; adding --network-plugin=cni to kubelet config"
+    KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni"
+  elif (( K0S_VERSION_SPLIT[0] == TARGET_VERSION_SPLIT[0] )); then
+    # If major versions are equal, compare the minor versions
+    if (( K0S_VERSION_SPLIT[1] < TARGET_VERSION_SPLIT[1] )); then
+      bold "Detected k0s version < 1.24; adding --network-plugin=cni to kubelet config"
+      KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --network-plugin=cni"
+    fi
+  fi
+
+  # Add Last escape double quote for KUBELET_EXTRA_ARGS
+  KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS\""
+
+  bold "kubelet extra arguments: $KUBELET_EXTRA_ARGS"
+}
+
 
 run_k0s_controller_daemon() {
   bold "Installing k0scontroller.service on systemd"
@@ -390,11 +415,19 @@ run_k0s_controller_daemon() {
   sudo $K0S_EXECUTABLE config create | sudo tee $K0S_CONFIG_PATH/k0s.yaml
   sudo sed -i -e 's/provider: kuberouter/provider: calico/g' $K0S_CONFIG_PATH/k0s.yaml
 
+  # Check the container runtime and set CRI_SOCKET_OPTION accordingly
+  if [ "$K0S_CONTAINER_RUNTIME" == "docker" ]; then
+    CRI_SOCKET_OPTION="--cri-socket=docker:unix:///var/run/docker.sock"
+  else
+    CRI_SOCKET_OPTION=""
+  fi
+
   sudo $K0S_EXECUTABLE install controller -c $K0S_CONFIG_PATH/k0s.yaml \
     ${no_taint_option:+"--no-taints"} \
     --enable-worker \
     --enable-cloud-provider \
     --enable-k0s-cloud-provider=true \
+    "$CRI_SOCKET_OPTION" \
     "$KUBELET_EXTRA_ARGS"
 
   bold "Starting k0scontroller.service"
@@ -450,6 +483,7 @@ check_node_disk_size() {
 run_k0s_daemon() {
   bold "Writing k0s cluster configuration to $K0S_CONFIG_PATH"
   sudo mkdir -p "$K0S_CONFIG_PATH"
+  generate_k0s_kubelet_extra_config
   if [ "$K0S_ROLE" == "controller" ]; then
     run_k0s_controller_daemon
   elif [ "$K0S_ROLE" == "worker" ]; then
@@ -505,6 +539,7 @@ version = 2
     runtime_type = "io.containerd.runc.v2"
     [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia.options]
       BinaryName = "/usr/bin/nvidia-container-runtime"
+      SystemdCgroup = true
 EOT
 }
 

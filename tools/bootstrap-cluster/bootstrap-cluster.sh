@@ -362,22 +362,13 @@ ensure_no_existing_k0s_running() {
 generate_k0s_kubelet_extra_config() {
   bold "Generating k0s kubelet extra config"
 
-  KUBELET_EXTRA_CONFIG_FILE="$K0S_CONFIG_PATH/kubelet-extra-config.yaml"
-  KUBELET_EXTRA_ARGS="--kubelet-extra-args=\"--config=$KUBELET_EXTRA_CONFIG_FILE"
-
-  # Generate kubelet extra configs file on $K0S_CONFIG_PATH/kubelet-extra-args.yaml
-  sudo tee $KUBELET_EXTRA_CONFIG_FILE >/dev/null <<-EOF
-apiVersion: kubelet.config.k8s.io/v1beta1
-kind: KubeletConfiguration
-
-EOF
+  KUBELET_EXTRA_ARGS="--kubelet-extra-args=\""
 
   # Set cgroup driver to systemd if init system is systemd, to prevent issues caused by multiple cgroup managers
   # Ref: https://kubernetes.io/docs/setup/production-environment/container-runtimes/#systemd-cgroup-driver
   # Might also relevant to Calico crashlooping issue: https://github.com/projectcalico/calico/issues/2146#issuecomment-559401221
   if [ -d /run/systemd/system ]; then
     bold "systemd detected as init system; setting cgroup driver to systemd"
-    echo "cgroupDriver: systemd" | sudo tee -a "$KUBELET_EXTRA_CONFIG_FILE"
     KUBELET_EXTRA_ARGS="$KUBELET_EXTRA_ARGS --cgroup-driver=systemd"
   fi
 

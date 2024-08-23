@@ -305,6 +305,14 @@ ensure_nvidia_gpu_dependencies() {
   fi
 }
 
+ensure_k0s_containerd_cgroup_driver_systemd() {
+  mkdir -p /etc/k0s/containerd.d/
+  cat <<EOF >/etc/k0s/containerd.d/
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+SystemdCgroup = true
+EOF
+}
+
 ensure_nvidia_device_volume_mounts() {
   # To prevent unprivileged container access all host GPUs, Set accept-nvidia-visible-devices-envvar-when-unprivileged=false
   # VESSL will only allow GPU access by volume mounts by setting accept-nvidia-visible-devices-as-volume-mounts=true
@@ -621,6 +629,7 @@ ensure_utilities() {
 ensure_utilities
 ensure_lshw_command
 ensure_hostname_lowercase
+ensure_k0s_containerd_cgroup_driver_systemd
 ensure_nvidia_gpu_dependencies
 ensure_nvidia_device_volume_mounts
 ensure_longhorn_dependencies

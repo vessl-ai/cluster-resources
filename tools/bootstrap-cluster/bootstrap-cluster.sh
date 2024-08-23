@@ -307,7 +307,7 @@ ensure_nvidia_gpu_dependencies() {
 
 ensure_k0s_containerd_cgroup_driver_systemd() {
   mkdir -p /etc/k0s/containerd.d/
-  cat <<EOF >/etc/k0s/containerd.d/
+  cat <<EOF >/etc/k0s/containerd.d/runc-cgroup-systemd.toml
 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
 SystemdCgroup = true
 EOF

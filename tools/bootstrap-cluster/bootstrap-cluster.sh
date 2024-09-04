@@ -504,6 +504,14 @@ wait_for_k0s_daemon() {
   fi
 }
 
+ensure_k0s_systemd_cgroup() {
+  mkdir -p /etc/k0s/contaierd.d/
+  cat <<EOF >/etc/k0s/containerd.d/runc-cgroup-systemd.toml
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+SystemdCgroup = true
+EOF
+}
+
 ensure_k0s_nvidia_container_runtime_containerd() {
   local config_file="/etc/k0s/containerd.toml"
 
@@ -626,6 +634,7 @@ ensure_nvidia_device_volume_mounts
 ensure_longhorn_dependencies
 install_k0s
 ensure_no_existing_k0s_running
+ensure_k0s_systemd_cgroup
 run_k0s_daemon
 wait_for_k0s_daemon
 ensure_k0s_nvidia_container_runtime

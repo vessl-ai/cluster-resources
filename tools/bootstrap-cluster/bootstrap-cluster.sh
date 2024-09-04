@@ -213,6 +213,27 @@ _install_dependency() {
 # ----------
 # Main logic
 # ----------
+set_node_ip_annotation() {
+  if [ "$NODE_IP" != "" ]; then
+    bold "Setting node IP annotation"
+    hostname=$(hostname)
+    retry_count=0
+    max_retries=5
+    while [ $retry_count -lt $max_retries ]; do
+      if sudo $K0S_EXECUTABLE kubectl annotate node "$hostname" "k0sproject.io/node-ip-external=$NODE_IP" --overwrite; then
+        bold "Successfully set node IP annotation"
+        return 0
+      else
+        retry_count=$((retry_count + 1))
+        bold "Failed to set node IP annotation. Retrying in 10 seconds... (Attempt $retry_count/$max_retries)"
+        sleep 10
+      fi
+    done
+    bold "Failed to set node IP annotation after $max_retries attempts"
+    return 1
+  fi
+}
+
 
 ensure_lshw_command() {
   bold "Checking if lshw command exists..."
@@ -502,6 +523,9 @@ wait_for_k0s_daemon() {
     bold "If the problem persists after retry, please reach out support@vessl.ai for technical support."
     abort ""
   fi
+
+  sleep 15
+  set_node_ip_annotation
 }
 
 ensure_k0s_systemd_cgroup() {

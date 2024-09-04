@@ -524,7 +524,7 @@ wait_for_k0s_daemon() {
     abort ""
   fi
 
-  sleep 15
+  sleep 5
   set_node_ip_annotation
 }
 

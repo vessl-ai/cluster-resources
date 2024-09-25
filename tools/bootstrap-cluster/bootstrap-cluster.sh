@@ -525,7 +525,7 @@ wait_for_k0s_daemon() {
   fi
 
   sleep 5
-  set_node_ip_annotation
+  # set_node_ip_annotation
 }
 
 ensure_k0s_systemd_cgroup() {

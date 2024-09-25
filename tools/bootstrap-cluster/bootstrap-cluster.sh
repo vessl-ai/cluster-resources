@@ -529,7 +529,7 @@ wait_for_k0s_daemon() {
 }
 
 ensure_k0s_systemd_cgroup() {
-  mkdir -p /etc/k0s/contaierd.d/
+  mkdir -p /etc/k0s/containerd.d/
   cat <<EOF >/etc/k0s/containerd.d/runc-cgroup-systemd.toml
 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
 SystemdCgroup = true
